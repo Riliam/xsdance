@@ -5,6 +5,9 @@ from lxml import etree
 
 from element import Element
 from utils import make_exception
+from validators import Validator
+
+_ = lambda x: x
 
 
 Schema = Element
@@ -130,11 +133,11 @@ class Generator(object):
                                         if max_occurs == 'unbounded'
                                         else max_occurs)
         if choice_element.min_occurs == choice_element.max_occurs:
-            label = 'Fill {min} of the following boxes'
+            label = _('Fill {min} of the following boxes')
         elif choice_element.max_occurs == Generator.UNBOUNDED:
-            label = 'Fill {min} or more of the following boxes'
+            label = _('Fill {min} or more of the following boxes')
         else:
-            label = 'Fill {min} to {max} of the following boxes'
+            label = _('Fill {min} to {max} of the following boxes')
         choice_element.label_text = label.format(min=choice_element.min_occurs,
                                                  max=choice_element.max_occurs)
         choice_element.html_parent_element_wrapper =\
@@ -192,21 +195,27 @@ class Generator(object):
         if base_type_name:
             self._process_type_by_name(base_type_name, el)
 
-        # TODO
-        enum_items = [n.attrib.get('value', '')
-                      for n in node
+        restrictions = [(x.get_tag(n), n.attrib.get('value', '')) for n in node
+                        if x.get_tag(n) != 'enumeration']
+        for rname, rvalue in restrictions:
+            el.add_validator(Validator(rname, rvalue))
+
+        enum_items = [n.attrib.get('value', '') for n in node
                       if x.get_tag(n) == 'enumeration']
         if enum_items:
             if len(enum_items) == 1:
                 value = enum_items[0]
                 html_input = '''
                     <input type="checkbox" name="{{name}}" id="{{name}}" value="{value}"/>
-                '''.format(value=value)
+                '''.format(value=value)  # NOQA
+
                 el.html_input = html_input
                 el.add_processor(CheckboxProcessor(value))
             else:
                 choices = list(zip(enum_items, enum_items))
-                options = ['<option value="{value}">{text}</option>'.format(value=value, text=text) for value, text in choices]
+                option_t = '<option value="{value}">{text}</option>'
+                options = [option_t.format(value=value, text=text)
+                           for value, text in choices]
                 html_input = '''
                     <select {multiple} name="{{name}}">
                         {options}
@@ -215,6 +224,7 @@ class Generator(object):
                     multiple='multiple' if el.max_occurs > 1 else '',
                     options=''.join(options))
                 el.html_input = html_input
+            el.add_validator(Validator('enumeration', enum_items))
 
     # helpers
 

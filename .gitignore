@@ -5,3 +5,7 @@ index.html
 IRS
 test_generator.py
 test_element.py
+element.pyc
+generator.pyc
+utils.pyc
+validators.pyc
