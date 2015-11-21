@@ -35,6 +35,15 @@ class x:
         return node is not None
 
 
+class CheckboxProcessor(object):
+
+    def __init__(self, value):
+        self.value = value
+
+    def __call__(self, v):
+        return self.value if v else ''
+
+
 class Generator(object):
 
     ElementNotFound = make_exception('ElementNotFound')
@@ -188,7 +197,24 @@ class Generator(object):
                       for n in node
                       if x.get_tag(n) == 'enumeration']
         if enum_items:
-            choices = list(zip(enum_items, enum_items))
+            if len(enum_items) == 1:
+                value = enum_items[0]
+                html_input = '''
+                    <input type="checkbox" name="{{name}}" id="{{name}}" value="{value}"/>
+                '''.format(value=value)
+                el.html_input = html_input
+                el.add_processor(CheckboxProcessor(value))
+            else:
+                choices = list(zip(enum_items, enum_items))
+                options = ['<option value="{value}">{text}</option>'.format(value=value, text=text) for value, text in choices]
+                html_input = '''
+                    <select {multiple} name="{{name}}">
+                        {options}
+                    </select>
+                '''.format(
+                    multiple='multiple' if el.max_occurs > 1 else '',
+                    options=''.join(options))
+                el.html_input = html_input
 
     # helpers
 
