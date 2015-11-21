@@ -54,3 +54,7 @@ def _serialize_xml(d, root=None):
 
 def serialize_xml(d, root='xml'):
     return etree.tostring(_serialize_xml(d, root))
+
+
+def serialize_json(d):
+    return json.dumps(d)
