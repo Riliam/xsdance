@@ -7,7 +7,7 @@ class Element(object):
 
     nesting_connector = '__'
     default_html_label = '<label for="{name}">{label_text}</label>'
-    default_html_help = '<span for="{name}">{help_text}</span>'
+    default_html_help = '<span for="{name}" class="help-text">{help_text}</span>'  # NOQA
     default_html_input = '<input id="{name}" name="{name}" value="{value}"/>'
     default_html_wrapper =\
         '''<div data-element={name}>
@@ -27,6 +27,7 @@ class Element(object):
 
     def __init__(self, name, initial_data=None,
                  label_text='',
+                 help_text='',
                  min_occurs=1,
                  max_occurs=1,
                  parent=None,
@@ -41,15 +42,19 @@ class Element(object):
         self.name = name
         self.initial_data = initial_data or {}
         self.label_text = label_text
-        self.html_label = html_label
-        self.html_input = html_input
-        self.html_wrapper = html_wrapper
-        self.html_parent_element_wrapper = html_parent_element_wrapper
+        self.help_text = help_text
         self.min_occurs = min_occurs
         self.max_occurs = max_occurs
         self.parent = parent
         self.validators = validators or []
         self.processors = processors or []
+
+        self.html_label = html_label
+        self.html_input = html_input
+        self.html_wrapper = html_wrapper
+        self.html_parent_element_wrapper = html_parent_element_wrapper
+        self.html_help = html_help
+
         self.kwargs = kwargs
 
         self.cleaned_value = None
@@ -89,8 +94,12 @@ class Element(object):
         return name
 
     def render_html(self):
+        html_help = self.html_help.format(
+            name=self.prefixed_name,
+            help_text=self.help_text or '',)
         content = self._render_subelements_html()\
             or self._html_input_with_value()
+        content = html_help + content
         return self.html_wrapper.format(
             name=self.prefixed_name,
             content=content)
