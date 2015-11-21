@@ -39,6 +39,8 @@ class Generator(object):
 
     ElementNotFound = make_exception('ElementNotFound')
     TypeNotFound = make_exception('TypeNotFound')
+    PRIMITIVE_TYPES_PATH = 'IRS/primitive_types.xsd'
+    UNBOUNDED = 999
 
     def __init__(self):
         self.filepath = None
@@ -58,12 +60,18 @@ class Generator(object):
 
         # BEGIN weird magic with namespaces:
         # This shit is in lxml, it yells at empty namespace, if you try
-        # to use it in .find or .xpath kind of methods
-        # NOTE! ### for elements with tag like 'Description'
-        # NOTE! ### use 'none:Description'
+        # to use it in .find or .xpath kind of methods.
+
+        # NOTE! ###   For elements with tag like 'Description'
+        # NOTE! ###   use 'none:Description'
         self.nsmap['none'] = self.nsmap[None]
         self.nsmap.pop(None)
         # STOP weird magic
+
+        primitive_types = etree.parse(Generator.PRIMITIVE_TYPES_PATH)
+        primitive_types_root = primitive_types.getroot()
+        self.includes.append(primitive_types_root)
+        assert self.nsmap['xsd'] == primitive_types_root.nsmap['xsd']
 
         result = self.parse(self.root)
         return result
@@ -75,85 +83,118 @@ class Generator(object):
             return func(node, el)
         return None
 
-    def parse_schema(self, top_node, el):
+    def parse_schema(self, node, el):
         schema = Schema('schema')
-        self._process_subnodes(top_node, schema)
+        self._process_subnodes(node, schema,
+                               skip=['simpleType', 'complexType'])
         return schema
 
-    def parse_include(self, top_node, el):
-        path = top_node.attrib['schemaLocation']
+    def parse_include(self, node, el):
+        path = node.attrib['schemaLocation']
         include_path = x.full_path_of_included_schema(self.filepath, path)
-        include_root = etree.parse(include_path, parser=etree.XMLParser(
-            remove_comments=True
-        )).getroot()
+        include_root = etree.parse(include_path).getroot()
         self.includes.append(include_root)
 
-    def parse_element(self, top_node, parent_el):
-        new_el = self._get_element_from_cache_or_create(top_node)
+    def parse_element(self, node, parent_el):
+        new_el = self._get_element_from_cache_or_create(node)
         parent_el.add_subelement(new_el)
 
-        type_name = top_node.attrib.get('type', None)
+        type_name = node.attrib.get('type', None)
         if type_name:
             self._process_type_by_name(type_name, new_el)
 
-        self._process_subnodes(top_node, new_el)
+        new_el.min_occurs = int(node.attrib.get('minOccurs', 1))
+        max_occurs = node.attrib.get('maxOccurs', 1)
+        new_el.max_occurs = int(Generator.UNBOUNDED
+                                if max_occurs == 'unbounded'
+                                else max_occurs)
+        self._process_subnodes(node, new_el)
 
-    def parse_choice(self, top_node, parent_el):
-        choice_element = Element('choice')
+    def parse_choice(self, node, parent_el):
+        choice_element = Element(':choice:')
         parent_el.add_subelement(choice_element)
 
-        self._process_subnodes(top_node, choice_element)
+        min_occurs = int(node.attrib.get('minOccurs', 1))
+        choice_element.min_occurs = min_occurs
+        max_occurs = node.attrib.get('maxOccurs', 1)
+        choice_element.max_occurs = int(Generator.UNBOUNDED
+                                        if max_occurs == 'unbounded'
+                                        else max_occurs)
+        if choice_element.min_occurs == choice_element.max_occurs:
+            label = 'Fill {min} of the following boxes'
+        elif choice_element.max_occurs == Generator.UNBOUNDED:
+            label = 'Fill {min} or more of the following boxes'
+        else:
+            label = 'Fill {min} to {max} of the following boxes'
+        choice_element.label_text = label.format(min=choice_element.min_occurs,
+                                                 max=choice_element.max_occurs)
+        choice_element.html_parent_element_wrapper =\
+            '''<div style="border: 1px solid black;" class="choice-wrapper" data-min={min} data-max={max}>
+                   <h4>{{parent_label}}</h4>
+                   <div data-parent={{parent_name}}>{{content}}</div>
+               </div>
+            '''.format(min=choice_element.min_occurs,  # NOQA
+                             max=choice_element.max_occurs)
 
-    def parse_annotation(self, top_node, el):
+        self._process_subnodes(node, choice_element)
+
+    def parse_annotation(self, node, el):
         description =\
-            top_node.find('.//none:Description', namespaces=self.nsmap)
-        el.label_text = getattr(description, 'text', '')
-        el.add_kwargs(**x.element_content_to_dict(top_node))
+            node.find('.//none:Description', namespaces=self.nsmap)
+        el.label_text = el.label_text or getattr(description, 'text', '')
+        el.add_kwargs(**x.element_content_to_dict(node))
 
-    def parse_sequence(self, top_node, el):
-        self._process_subnodes(top_node, el)
+    def parse_sequence(self, node, el):
+        self._process_subnodes(node, el)
 
     # parse attributes
 
-    def parse_attribute(self, top_node, el):
-        self._process_subnodes(top_node, el)
+    def parse_attribute(self, node, el):
+        self._process_subnodes(node, el)
 
-    def parse_attributeGroup(self, top_node, el):
-        self._process_subnodes(top_node, el)
+    def parse_attributeGroup(self, node, el):
+        self._process_subnodes(node, el)
 
     # parse type
 
-    def parse_simpleType(self, top_node, el):
-        self._process_subnodes(top_node, el)
+    def parse_simpleType(self, node, el):
+        self._process_subnodes(node, el)
 
-    def parse_simpleContent(self, top_node, el):
-        self._process_subnodes(top_node, el)
+    def parse_simpleContent(self, node, el):
+        self._process_subnodes(node, el)
 
-    def parse_complexType(self, top_node, el):
-        self._process_subnodes(top_node, el)
+    def parse_complexType(self, node, el):
+        self._process_subnodes(node, el)
 
-    def parse_complexContent(self, top_node, el):
-        self._process_subnodes(top_node, el)
+    def parse_complexContent(self, node, el):
+        self._process_subnodes(node, el)
 
     # parse extensions and restrictions
 
-    def parse_extension(self, top_node, el):
-        self._process_subnodes(top_node, el)
+    def parse_extension(self, node, el):
+        base_type_name = node.attrib.get('base', None)
+        if base_type_name:
+            self._process_type_by_name(base_type_name, el)
 
-    def parse_restriction(self, top_node, el):
-        self._process_restrictions(top_node, el)
+        self._process_subnodes(node, el)
+
+    def parse_restriction(self, node, el):
+        base_type_name = node.attrib.get('base', None)
+        if base_type_name:
+            self._process_type_by_name(base_type_name, el)
+
+        # TODO
+        enum_items = [n.attrib.get('value', '')
+                      for n in node
+                      if x.get_tag(n) == 'enumeration']
+        if enum_items:
+            choices = list(zip(enum_items, enum_items))
 
     # helpers
 
-    def _process_restrictions(self, top_node, el):
-        pass
-
-    def _get_type_by_name(self, name):
-        return None
-
-    def _get_element_from_cache_or_create(self, top_node):
-        name = top_node.attrib.get('name', None)
-        ref = top_node.attrib.get('ref', None)
+    def _get_element_from_cache_or_create(self, node):
+        name = node.attrib.get('name', None)
+        ref = node.attrib.get('ref', None)
         new_el = None
         if name:
             new_el = Element(name)
@@ -166,11 +207,17 @@ class Generator(object):
             raise Generator.ElementNotFound
         return new_el
 
-    def _process_subnodes(self, top_node, el):
+    def _process_subnodes(self, top_node, el, skip=None):
+        skip = skip or []
         for node in top_node:
-            self.parse(node, el)
+            if x.get_tag(node) not in skip:
+                self.parse(node, el)
 
     def _process_type_by_name(self, type_name, el):
+        if 'xsd:' in type_name:
+            type_name = type_name.split('xsd:')[-1]
+        if type_name == 'anySimpleType':
+            return
         simpleType_expr = './/xsd:simpleType[@name="{}"]'.format(type_name)
         complexType_expr = './/xsd:complexType[@name="{}"]'.format(type_name)
 
