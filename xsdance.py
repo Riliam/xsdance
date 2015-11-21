@@ -4,10 +4,10 @@ from utils import serialize_xml, serialize_json, make_exception
 class Element(object):
 
     ValueRequiredError = make_exception('ValueRequiredError')
-    ValidationError = make_exception('ValidationError')
 
     nesting_connector = '__'
-    default_input = '<label for="{name}">{label_text}</label><input name="{name}" value="{value}"/>'
+    default_label_html = '<label for="{name}">{label_text}</label>'
+    default_input = '<input id="{name}" name="{name}" value="{value}"/>'
     default_wrapper = '<div data-element={name}>{content}<span class="error"></span></div>'  # NOQA
     parent_element_wrapper = '<div style="border: 1px solid black;"><h5>{parent_name}</h5>{content}</div>'  # NOQA
 
@@ -15,14 +15,16 @@ class Element(object):
         'required': 'This field is required',
     }
 
-    def __init__(self, name, initial=None, label_text='',
+    def __init__(self, name, initial_data=None,
+                 label_text='', label_html=default_label_html,
                  html_input=default_input,
                  html_wrapper=default_wrapper,
                  min_occurs=1, max_occurs=1,
-                 parent=None, validators=None,
-                 processors=None):
+                 parent=None,
+                 validators=None, processors=None):
         self.name = name
         self.label_text = label_text or name
+        self.label_html = label_html
         self.html_input = html_input
         self.html_wrapper = html_wrapper
         self.min_occurs = min_occurs
@@ -30,26 +32,31 @@ class Element(object):
         self.parent = parent
         self.validators = validators or []
         self.processors = processors or []
-        self.initial = initial or {}
+        self.initial_data = initial_data or {}
 
         self.cleaned_value = None
         self._cleaned_data = {}
+        self.errors = {}
 
         self.subelements = []
 
         if parent:
             parent._add_subelement(self)
-            if parent.initial:
-                self.initial[self.name] = parent.initial[parent.name].get(self.name, None)
+            if parent.initial_data:
+                self.initial_data[self.name] = parent.initial_data[parent.name].get(self.name, None)
 
     def __repr__(self):
         return self.name
 
-    def cleaned_data(self, top=True):
+    @property
+    def cleaned_data(self):
+        return self._get_cleaned_data()
+
+    def _get_cleaned_data(self, top=True):
         if self._cleaned_data:
             return self._cleaned_data
 
-        cleaned_sub = {sub.name: sub.cleaned_data(top=False)
+        cleaned_sub = {sub.name: sub._get_cleaned_data(top=False)
                        for sub in self.subelements}
         data = cleaned_sub or self.cleaned_value
         if top:
@@ -57,6 +64,10 @@ class Element(object):
         self._cleaned_data = data
 
         return data
+
+    @property
+    def initial_value(self):
+        return self.initial_data[self.name]
 
     @property
     def prefixed_name(self):
@@ -76,12 +87,12 @@ class Element(object):
             content=content)
 
     def render_xml(self):
-        if not self.initial:
+        if not self.initial_data:
             raise Element.ValueRequiredError
         return serialize_xml(self.cleaned_data())
 
     def render_json(self):
-        if not self.initial:
+        if not self.initial_data:
             raise Element.ValueRequiredError
         return serialize_json(self.cleaned_data())
 
@@ -106,7 +117,8 @@ class Element(object):
                 errors[self.prefixed_name] =\
                     errors.get(self.prefixed_name, []) + [result]
 
-        return errors
+        self.errors = errors
+        return self.errors
 
     def process_value(self, value):
         processed = value
@@ -116,11 +128,17 @@ class Element(object):
 
     def _html_input_with_value(self):
         name = self.prefixed_name
+
         if self.html_input:
-            return self.html_input.format(
+            label_html = self.label_html.format(
                 name=name,
                 label_text=self.label_text,
-                value=self.initial[self.name] or '')
+            )
+            input_html = self.html_input.format(
+                name=name,
+                value=self.initial_data[self.name] or ''
+            )
+            return label_html + input_html
         return ''
 
     def _render_subelements_html(self):
