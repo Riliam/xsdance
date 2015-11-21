@@ -21,8 +21,10 @@ class Element(object):
                  html_wrapper=default_wrapper,
                  min_occurs=1, max_occurs=1,
                  parent=None,
-                 validators=None, processors=None):
+                 validators=None, processors=None,
+                 **kwargs):
         self.name = name
+        self.initial_data = initial_data or {}
         self.label_text = label_text or name
         self.label_html = label_html
         self.html_input = html_input
@@ -32,7 +34,7 @@ class Element(object):
         self.parent = parent
         self.validators = validators or []
         self.processors = processors or []
-        self.initial_data = initial_data or {}
+        self.kwargs = kwargs
 
         self.cleaned_value = None
         self._cleaned_data = {}
@@ -41,9 +43,13 @@ class Element(object):
         self.subelements = []
 
         if parent:
-            parent._add_subelement(self)
-            if parent.initial_data:
-                self.initial_data[self.name] = parent.initial_data[parent.name].get(self.name, None)
+            parent.add_subelement(self)
+            if parent.initial_value:
+                initial_data = parent.initial_value.get(self.name, None)
+                self.initial_data[self.name] = initial_data
+
+    def __getitem__(self, index):
+        return self.subelements[index]
 
     def __repr__(self):
         return self.name
@@ -51,19 +57,6 @@ class Element(object):
     @property
     def cleaned_data(self):
         return self._get_cleaned_data()
-
-    def _get_cleaned_data(self, top=True):
-        if self._cleaned_data:
-            return self._cleaned_data
-
-        cleaned_sub = {sub.name: sub._get_cleaned_data(top=False)
-                       for sub in self.subelements}
-        data = cleaned_sub or self.cleaned_value
-        if top:
-            data = {self.name: data}
-        self._cleaned_data = data
-
-        return data
 
     @property
     def initial_value(self):
@@ -126,6 +119,32 @@ class Element(object):
             processed = processor(processed)
         return processed
 
+    def add_subelement(self, el):
+        self.subelements.append(el)
+        el.set_parent(self)
+
+    def set_parent(self, el):
+        self.parent = el
+
+    def add_kwargs(self, **kwargs):
+        self.kwargs.update(**kwargs)
+
+    def _get_full_prefix(self):
+        parents = []
+        el = self
+        while getattr(el, 'parent'):
+            parents.append(el.parent.name)
+            el = el.parent
+        return self.nesting_connector.join(reversed(parents))
+
+    def _render_subelements_html(self):
+        content = ''.join(el.render_html() for el in self.subelements)
+        if content:
+            content = self.parent_element_wrapper.format(
+                parent_name=self.name,
+                content=content)
+        return content
+
     def _html_input_with_value(self):
         name = self.prefixed_name
 
@@ -136,26 +155,20 @@ class Element(object):
             )
             input_html = self.html_input.format(
                 name=name,
-                value=self.initial_data[self.name] or ''
+                value=self.initial_data.get(self.name) or ''
             )
             return label_html + input_html
         return ''
 
-    def _render_subelements_html(self):
-        content = ''.join(el.render_html() for el in self.subelements)
-        if content:
-            content = self.parent_element_wrapper.format(
-                parent_name=self.name,
-                content=content)
-        return content
+    def _get_cleaned_data(self, top=True):
+        if self._cleaned_data:
+            return self._cleaned_data
 
-    def _add_subelement(self, el):
-        self.subelements.append(el)
+        cleaned_sub = {sub.name: sub._get_cleaned_data(top=False)
+                       for sub in self.subelements}
+        data = cleaned_sub or self.cleaned_value
+        if top:
+            data = {self.name: data}
+        self._cleaned_data = data
 
-    def _get_full_prefix(self):
-        parents = []
-        el = self
-        while getattr(el, 'parent'):
-            parents.append(el.parent.name)
-            el = el.parent
-        return self.nesting_connector.join(reversed(parents))
+        return data
