@@ -93,28 +93,38 @@ class Element(object):
                 name=name)
         return name
 
-    def render_html(self):
+    def render_html(self, inlines=None):
         html_help = self.html_help.format(
             name=self.prefixed_name,
-            help_text=self.help_text or '',)
-        content = self._render_subelements_html()\
-            or self._html_input_with_value()
+            help_text=self.help_text or '')
+        html_subelements = self._render_subelements_html(
+            inlines=self.min_occurs if self.max_occurs > 1 else None)
+        content = html_subelements\
+            or self._html_input_with_value(inlines=inlines)
         content = content + html_help
         return self.html_wrapper.format(
             name=self.prefixed_name,
             content=content)
 
-    def _render_subelements_html(self):
-        content = ''.join(el.render_html() for el in self.subelements)
+    def _render_subelements_html(self, inlines=None):
+        content = ''.join(el.render_html(inlines=inlines)
+                          for el in self.subelements)
+        name = self.name
+        if inlines is not None:
+            name = '{}_#0'.format(name)
+
         if content:
             content = self.html_parent_element_wrapper.format(
-                parent_label=self.label_text or self.name,
-                parent_name=self.name,
+                parent_label=self.label_text or name,
+                parent_name=name,
                 content=content)
         return content
 
-    def _html_input_with_value(self):
+    def _html_input_with_value(self, inlines=None):
         name = self.prefixed_name
+        if inlines is not None:
+            name = '{}_#0'.format(name)
+            print(name)
 
         if self.html_input:
             html_label = self.html_label.format(
