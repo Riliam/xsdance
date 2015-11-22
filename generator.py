@@ -4,8 +4,7 @@ import os
 from lxml import etree
 
 from element import Element
-from utils import make_exception
-from validators import Validator
+from utils import make_exception, Validator
 
 _ = lambda x: x
 
@@ -162,9 +161,11 @@ class Generator(object):
     # parse attributes
 
     def parse_attribute(self, node, el):
+        # TODO
         self._process_subnodes(node, el)
 
     def parse_attributeGroup(self, node, el):
+        # TODO
         self._process_subnodes(node, el)
 
     # parse type

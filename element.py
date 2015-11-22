@@ -20,7 +20,7 @@ class Element(object):
                <div data-parent={parent_name}>{content}</div>
            </div>
         '''
-
+    html_required = '<span class="required">*</span>'
     error_messages = {
         'required': 'This field is required',
     }
@@ -99,7 +99,7 @@ class Element(object):
             help_text=self.help_text or '',)
         content = self._render_subelements_html()\
             or self._html_input_with_value()
-        content = html_help + content
+        content = content + html_help
         return self.html_wrapper.format(
             name=self.prefixed_name,
             content=content)
@@ -185,11 +185,11 @@ class Element(object):
                 name=name,
                 label_text=self.label_text or name,
             )
-            input_html = self.html_input.format(
+            html_input = self.html_input.format(
                 name=name,
                 value=self.initial_data.get(self.name) or ''
             )
-            return html_label + input_html
+            return html_label + self.required() + html_input
         return ''
 
     def _get_cleaned_data(self, top=True):
@@ -204,3 +204,9 @@ class Element(object):
         self._cleaned_data = data
 
         return data
+
+    def required(self):
+        required = ''
+        if 'choice' not in self.parent.name:
+            required = self.html_required if self.min_occurs > 0 else ''
+        return required
