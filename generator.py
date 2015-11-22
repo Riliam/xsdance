@@ -53,6 +53,16 @@ class Generator(object):
     PRIMITIVE_TYPES_PATH = 'IRS/primitive_types.xsd'
     UNBOUNDED = 999
 
+    html_checkbox = '''
+        <input type="checkbox" name="{{name}}" id="{{name}}" value="{value}"/>
+    '''
+    html_select = '''
+        <select {multiple} name="{{name}}">
+            {options}
+        </select>
+    '''
+    html_option = '<option value="{value}">{text}</option>'
+
     def __init__(self):
         self.filepath = None
         self.elements_cache = {}
@@ -206,22 +216,15 @@ class Generator(object):
         if enum_items:
             if len(enum_items) == 1:
                 value = enum_items[0]
-                html_input = '''
-                    <input type="checkbox" name="{{name}}" id="{{name}}" value="{value}"/>
-                '''.format(value=value)  # NOQA
+                html_input = self.html_checkbox.format(value=value)  # NOQA
 
                 el.html_input = html_input
                 el.add_processor(CheckboxProcessor(value))
             else:
                 choices = list(zip(enum_items, enum_items))
-                option_t = '<option value="{value}">{text}</option>'
-                options = [option_t.format(value=value, text=text)
+                options = [self.html_option.format(value=value, text=text)
                            for value, text in choices]
-                html_input = '''
-                    <select {multiple} name="{{name}}">
-                        {options}
-                    </select>
-                '''.format(
+                html_input = self.html_select.format(
                     multiple='multiple' if el.max_occurs > 1 else '',
                     options=''.join(options))
                 el.html_input = html_input
