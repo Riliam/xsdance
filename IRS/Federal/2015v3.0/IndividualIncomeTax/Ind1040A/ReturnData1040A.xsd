@@ -1,0 +1,468 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema targetNamespace="http://www.irs.gov/efile" xmlns="http://www.irs.gov/efile" xmlns:xsd="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified" version="1.0">
+
+	<xsd:annotation>
+		<xsd:documentation>
+			<Description>IRS e-file  Individual Income Tax Schema - Return data schema for 1040A return</Description>
+			<TaxYear>2015</TaxYear>
+			<MaturityLevel>Final Release</MaturityLevel>
+			<ReleaseDate>October 29, 2015</ReleaseDate>
+		</xsd:documentation>
+	</xsd:annotation>
+
+	<xsd:include schemaLocation="../../Common/efileTypes.xsd" />
+	<xsd:include schemaLocation="../../Common/BinaryAttachment.xsd" />
+
+	<xsd:include schemaLocation="IRS1040A/IRS1040A.xsd" />
+
+	<xsd:include schemaLocation="../Common/IRS1040Schedule8812/IRS1040Schedule8812.xsd" />
+	<xsd:include schemaLocation="../Common/IRS1040ScheduleB/IRS1040ScheduleB.xsd" />
+	<xsd:include schemaLocation="../Common/IRS1040ScheduleEIC/IRS1040ScheduleEIC.xsd" />
+	<xsd:include schemaLocation="../Common/IRS1040ScheduleR/IRS1040ScheduleR.xsd" />
+	<xsd:include schemaLocation="../Common/IRS1099R/IRS1099R.xsd" />
+	<xsd:include schemaLocation="../Common/IRS1310/IRS1310.xsd" />
+	<xsd:include schemaLocation="../Common/IRS2120/IRS2120.xsd" />
+	<xsd:include schemaLocation="../Common/IRS2210/IRS2210.xsd" />
+	<xsd:include schemaLocation="../Common/IRS2441/IRS2441.xsd" />
+	<xsd:include schemaLocation="../Common/IRS8379/IRS8379.xsd" />
+	<xsd:include schemaLocation="../Common/IRS8606/IRS8606.xsd" />
+	<xsd:include schemaLocation="../Common/IRS8615/IRS8615.xsd" />
+	<xsd:include schemaLocation="../Common/IRS8815/IRS8815.xsd" />
+	<xsd:include schemaLocation="../../CorporateIncomeTax/Common/IRS8833/IRS8833.xsd" />
+	<xsd:include schemaLocation="../Common/IRS8862/IRS8862.xsd" />
+	<xsd:include schemaLocation="../Common/IRS8863/IRS8863.xsd" />
+	<xsd:include schemaLocation="../Common/IRS8867/IRS8867.xsd" />
+	<xsd:include schemaLocation="../Common/IRS8880/IRS8880.xsd" />
+	<xsd:include schemaLocation="../../CorporateIncomeTax/Common/IRS8886/IRS8886.xsd" />
+	<xsd:include schemaLocation="../Common/IRS8888/IRS8888.xsd" />
+	<xsd:include schemaLocation="../Common/IRS8917/IRS8917.xsd" />
+	<xsd:include schemaLocation="../Common/IRS8962/IRS8962.xsd" />
+	<xsd:include schemaLocation="../Common/IRS8965/IRS8965.xsd" />
+	<xsd:include schemaLocation="../../InstallmentAgreement/9465/IRS9465/IRS9465.xsd" />
+	<xsd:include schemaLocation="../Common/IRSW2/IRSW2.xsd" />
+
+	<!-- Common Dependencies (supporting info, schedules, computations, and such) -->	
+	<xsd:include schemaLocation="../Common/Dependencies/FECRecord.xsd" />
+	<xsd:include schemaLocation="../../CorporateIncomeTax/Common/Dependencies/GeneralDependencyMedium.xsd" />
+	<xsd:include schemaLocation="../../CorporateIncomeTax/Common/Dependencies/GeneralDependencySmall.xsd" />
+	<xsd:include schemaLocation="../Common/Dependencies/IRADistributionStatement.xsd" />
+	<xsd:include schemaLocation="../Common/Dependencies/IRSESPayment.xsd" />
+	<xsd:include schemaLocation="../../CorporateIncomeTax/Common/Dependencies/IRSPayment.xsd" />
+	<xsd:include schemaLocation="../Common/Dependencies/NameChangeStatement.xsd" />
+	<xsd:include schemaLocation="../Common/Dependencies/NomineeDistributionStatement.xsd" />
+	<xsd:include schemaLocation="../Common/Dependencies/OtherWithholdingStatement.xsd" />
+	<xsd:include schemaLocation="../Common/Dependencies/OverseasExtensionStatement.xsd" />
+	<xsd:include schemaLocation="../Common/Dependencies/OvpmtAppToSpouseEstimatedTaxStatement.xsd" />
+	<xsd:include schemaLocation="../Common/Dependencies/PaidJointTYEstimatedTaxExplanationStatement.xsd" />
+	<xsd:include schemaLocation="../Common/Dependencies/PenaltiesStatement.xsd" />
+	<xsd:include schemaLocation="../Common/Dependencies/RecaptureStatement.xsd" />
+	<xsd:include schemaLocation="../Common/Dependencies/SpouseSignatureStatement.xsd" />
+	<xsd:include schemaLocation="../Common/Dependencies/WagesNotShownSchedule.xsd" />
+
+	<!-- Includes for 2210 (supporting info, schedules, computations, and such) -->
+	<xsd:include schemaLocation="../Common/IRS2210/WaiverExplanationStatement.xsd" />
+
+	<!-- Includes for 2441 (supporting info, schedules, computations, and such) -->
+	<xsd:include schemaLocation="../Common/IRS2441/CPYEExplanationStatement.xsd" />
+
+	<!-- Includes for 8379 (supporting info, schedules, computations, and such) -->
+	<xsd:include schemaLocation="../Common/IRS8379/InjuredSpouseOtherIncomeStatement.xsd" />
+
+	<!-- Includes for 8606 (supporting info, schedules, computations, and such) -->
+	<xsd:include schemaLocation="../Common/IRS8606/ChangeByDivorceInIRABasisStatement.xsd" />
+	<xsd:include schemaLocation="../Common/IRS8606/DistributionOfExContriStmt.xsd" />
+	<xsd:include schemaLocation="../Common/IRS8606/IRARecharacterizationStatement.xsd" />
+	<xsd:include schemaLocation="../Common/IRS8606/ReturnOfExTradIRAContriStmt.xsd" />
+	<xsd:include schemaLocation="../Common/IRS8606/ReturnOfIRAContributionsStmt.xsd" />
+
+	<!-- Includes for 8886 (supporting info, schedules, computations, and such) -->
+	<xsd:include schemaLocation="../../CorporateIncomeTax/Common/IRS8886/ContinuationOfForm8886ExpectedTaxBenefitsExplanation.xsd" />
+
+	<!-- Return 1040A -->
+	<xsd:element name="ReturnData">
+		<xsd:annotation>
+			<xsd:documentation>1040A Return Contents</xsd:documentation>
+		</xsd:annotation>
+
+		<xsd:complexType>
+			<xsd:sequence>
+
+				<!-- Form 1040A -->
+				<xsd:element ref="IRS1040A">
+					<xsd:annotation>
+						<xsd:documentation>IRS Form 1040A - U.S. Individual Income Tax Return</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+
+				<!-- Form 1040 Schedule 8812 -->
+				<xsd:element ref="IRS1040Schedule8812" minOccurs="0">
+					<xsd:annotation>
+						<xsd:documentation>IRS Form 1040 Schedule 8812 - Child Tax Credit</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+
+				<!-- Form 1040 Schedule B -->
+				<xsd:element ref="IRS1040ScheduleB" minOccurs="0">
+					<xsd:annotation>
+						<xsd:documentation>IRS Form 1040 Schedule B - Interest and Ordinary Dividends</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+
+				<!-- Form 1040 Schedule EIC -->
+				<xsd:element ref="IRS1040ScheduleEIC" minOccurs="0">
+					<xsd:annotation>
+						<xsd:documentation>IRS Form 1040 Schedule EIC - Earned Income Credit</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+
+				<!-- Form 1040 Schedule R -->
+				<xsd:element ref="IRS1040ScheduleR" minOccurs="0">
+					<xsd:annotation>
+						<xsd:documentation>IRS Form 1040 Schedule R - Credit for the Elderly or the Disabled</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+
+				<!-- Form 1099-R -->
+				<xsd:element ref="IRS1099R" minOccurs="0" maxOccurs="20">
+					<xsd:annotation>
+						<xsd:documentation>IRS Form 1099R - Distributions From Pensions, Annuities, Retirement or Profit-Sharing Plans, IRAs, Insurance Contracts, etc.</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+
+				<!-- Form 1310 -->
+				<xsd:element ref="IRS1310" minOccurs="0" maxOccurs="2">
+					<xsd:annotation>
+						<xsd:documentation>IRS Form 1310 - Statement of Person Claiming Refund Due a Deceased Taxpayer</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+
+				<!-- Form 2120 -->
+				<xsd:element ref="IRS2120" minOccurs="0" maxOccurs="4">
+					<xsd:annotation>
+					<xsd:documentation>IRS Form 2120 - Multiple Support Declaration</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+
+				<!-- Form 2210 -->
+				<xsd:element ref="IRS2210" minOccurs="0">
+					<xsd:annotation>
+						<xsd:documentation>IRS Form 2210 - Underpayment of Estimated Tax by Individuals, Estates, and Trusts</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+
+				<!-- Form 2441 -->
+				<xsd:element ref="IRS2441" minOccurs="0">
+					<xsd:annotation>
+						<xsd:documentation>IRS Form 2441 - Child and Dependent Care Expenses</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+
+				<!-- Form 8379 -->
+				<xsd:element ref="IRS8379" minOccurs="0">
+					<xsd:annotation>
+						<xsd:documentation>IRS Form 8379 - Injured Spouse Allocation</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+
+				<!-- Form 8606 -->
+				<xsd:element ref="IRS8606" minOccurs="0" maxOccurs="2">
+					<xsd:annotation>
+						<xsd:documentation>IRS Form 8606 - Nondeductible IRAs</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+
+				<!-- Form 8615 -->
+				<xsd:element ref="IRS8615" minOccurs="0">
+					<xsd:annotation>
+						<xsd:documentation>IRS Form 8615 - Tax for Certain Children Who Have Investment Income of More Than $1,900</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+
+				<!-- Form 8815 -->
+				<xsd:element ref="IRS8815" minOccurs="0">
+					<xsd:annotation>
+						<xsd:documentation>IRS Form 8815 - Exclusion of Interest From Series EE and I U.S. Savings Bonds Issued After 1989</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+
+				<!-- Form 8833 -->
+				<xsd:element ref="IRS8833" minOccurs="0" maxOccurs="10">
+					<xsd:annotation>
+						<xsd:documentation>IRS Form 8833 - Treaty-Based Return Position Disclosure Under Section 6114 or 7701(b)</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+
+				<!-- Form 8862 -->
+				<xsd:element ref="IRS8862" minOccurs="0">
+					<xsd:annotation>
+						<xsd:documentation>IRS Form 8862 - Information to Claim Earned Income Credit After Disallowance</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+
+				<!-- Form 8863 -->
+				<xsd:element ref="IRS8863" minOccurs="0">
+					<xsd:annotation>
+				 		<xsd:documentation>IRS Form 8863 - Education Credits (American Opportunity and Lifetime Learning Credits)</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+	
+				<!-- Form 8867 -->
+				<xsd:element ref="IRS8867" minOccurs="0">
+					<xsd:annotation>
+						<xsd:documentation>IRS Form 8867 - Paid Preparer's Earned Income Credit Checklist</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+
+				<!-- Form 8880 -->
+				<xsd:element ref="IRS8880" minOccurs="0">
+					<xsd:annotation>
+						<xsd:documentation>IRS Form 8880 - Credit for Qualified Retirement Savings Contributions</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+
+				<!-- Form 8886 -->
+				<xsd:element ref="IRS8886" minOccurs="0" maxOccurs="unbounded">
+					<xsd:annotation>
+						<xsd:documentation>IRS Form 8886 - Reportable Transaction Disclosure Statement</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+
+				<!-- Form 8888 -->
+				<xsd:element ref="IRS8888" minOccurs="0">
+					<xsd:annotation>
+						<xsd:documentation>IRS Form 8888 - Allocation of Refund (Including Bond Purchases)</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+
+				<!-- Form 8917 -->
+				<xsd:element ref="IRS8917" minOccurs="0">
+					<xsd:annotation>
+						<xsd:documentation>IRS Form 8917 - Tuition and Fees Deduction</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+
+				<!-- Form 8962 -->
+				<xsd:element ref="IRS8962" minOccurs="0">
+					<xsd:annotation>
+						<xsd:documentation>IRS Form 8962 - Premium Tax Credit (PTC)</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element> 
+
+				<!-- Form 8965 -->
+				<xsd:element ref="IRS8965" minOccurs="0">
+					<xsd:annotation>
+						<xsd:documentation>IRS Form 8965 - Health Coverage Exemptions</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element> 
+
+				<!-- Form 9465 -->
+				<xsd:element ref="IRS9465" minOccurs="0">
+					<xsd:annotation>
+						<xsd:documentation>IRS Form 9465 - Installment Agreement Request</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+
+				<!-- Form W2 -->
+				<xsd:element ref="IRSW2" minOccurs="0" maxOccurs="50">
+					<xsd:annotation>
+						<xsd:documentation>IRS Form W2 - Wage and Tax Statement</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+
+			<!-- List of Dependencies by form -->
+
+				<!-- Form 1040 statement (common) -->
+				<xsd:element ref="FECRecord" minOccurs="0" maxOccurs="10">
+					<xsd:annotation>
+						<xsd:documentation>FEC record</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+
+				<!-- Form 1040 statement (common) -->
+				<xsd:element ref="IRADistributionStatement" minOccurs="0">
+					<xsd:annotation>
+						<xsd:documentation>IRA distribution statement</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+
+				<!-- Form 1040 statement (common) -->
+				<xsd:element ref="NameChangeStatement" minOccurs="0">
+					<xsd:annotation>
+						<xsd:documentation>Name change statement</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+
+				<!-- Form 1040 statement (common) -->
+				<xsd:element ref="NomineeDistributionStatement" minOccurs="0">
+					<xsd:annotation>
+						<xsd:documentation>Nominee distribution statement</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+
+				<!-- Form 1040 statement (common) -->
+				<xsd:element ref="OtherWithholdingStatement" minOccurs="0">
+						<xsd:annotation>
+								<xsd:documentation>Other Withholding Statement</xsd:documentation>
+						</xsd:annotation>
+				</xsd:element>
+
+				<!-- Form 1040 statement (common) -->
+				<xsd:element ref="OverseasExtensionStatement" minOccurs="0">
+					<xsd:annotation>
+						<xsd:documentation>Overseas Extension Statement</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+
+				<!-- Form 1040 statement (common) -->
+				<xsd:element ref="OvpmtAppToSpouseEstTxStmt" minOccurs="0">
+					<xsd:annotation>
+						<xsd:documentation>Overpayment Apply to Spouse Estimated Tax Statement</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+
+				<!-- Form 1040 statement (common) -->
+				<xsd:element ref="PaidJointTYEstTaxExplnStmt" minOccurs="0">
+					<xsd:annotation>
+						<xsd:documentation>Paid Joint TY Estimated Tax Explanation Statement</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+
+				<!-- Form 1040 statement (common) -->
+				<xsd:element ref="PenaltiesStatement" minOccurs="0">
+					<xsd:annotation>
+						<xsd:documentation>Penalties Statement</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+
+				<!-- Form 1040 statement (common) -->
+				<xsd:element ref="RecaptureStatement" minOccurs="0">
+					<xsd:annotation>
+						<xsd:documentation>Recapture Statement</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+
+				<!-- Form 1040 statement (common) -->
+				<xsd:element ref="SpouseSignatureStatement" minOccurs="0">
+					<xsd:annotation>
+						<xsd:documentation>Spouse Signature Statement</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+
+				<!-- Form 1040 schedule (common) -->
+				<xsd:element ref="WagesNotShownSchedule" minOccurs="0">
+					<xsd:annotation>
+						<xsd:documentation>Wages Not Shown Schedule</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+
+				<!-- Form 2210 statement -->
+				<xsd:element ref="WaiverExplanationStatement" minOccurs="0">
+					<xsd:annotation>
+						<xsd:documentation>Waiver Explanation Statement</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+
+				<!-- Form 2441 statement -->
+				<xsd:element ref="CPYEExplanationStatement" minOccurs="0">
+					<xsd:annotation>
+						<xsd:documentation>CPYE Explanation Statement</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+
+				<!-- Form 8379 statement -->
+				<xsd:element ref="InjuredSpouseOtherIncomeStmt" minOccurs="0">
+					<xsd:annotation>
+						<xsd:documentation>Injured Spouse Other Income Statement</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+
+				<!-- Form 8606 statement -->
+				<xsd:element ref="ChangeByDivorceInIRABasisStmt" minOccurs="0" maxOccurs="unbounded">
+					<xsd:annotation>
+						<xsd:documentation>Change By Divorce In IRA Basis Statement</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+
+				<!-- Form 8606 statement -->
+				<xsd:element ref="DistributionOfExContriStmt" minOccurs="0" maxOccurs="unbounded">
+					<xsd:annotation>
+						<xsd:documentation>Distribution of Excess Contributions Statement</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+
+				<!-- Form 8606 statement -->
+				<xsd:element ref="IRARecharacterizationStmt" minOccurs="0" maxOccurs="unbounded">
+					<xsd:annotation>
+						<xsd:documentation>IRA Recharacterization Statement</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+
+				<!-- Form 8606 statement -->
+				<xsd:element ref="ReturnOfExTradIRAContriStmt" minOccurs="0" maxOccurs="unbounded">
+					<xsd:annotation>
+						<xsd:documentation>Return of Excess Traditional IRA Contributions Statement</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+
+				<!-- Form 8606 statement -->
+				<xsd:element ref="ReturnOfIRAContributionsStmt" minOccurs="0" maxOccurs="unbounded">
+					<xsd:annotation>
+						<xsd:documentation>Return of IRA Contributions Statement</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+
+				<!-- Form 8886 statement -->
+				<xsd:element ref="ContF8886ExpctTaxBnftExpln" minOccurs="0" maxOccurs="unbounded">
+					<xsd:annotation>
+						<xsd:documentation>Continuation Of Form 8886 Expected Tax Benefits Explanation</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+
+				<!-- IRS Payment Record -->
+				<xsd:element ref="IRSPayment" minOccurs="0">
+					<xsd:annotation>
+						<xsd:documentation>IRS payment</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+
+				<!-- IRS ES Payment Record -->
+				<xsd:element ref="IRSESPayment" minOccurs="0" maxOccurs="4">
+					<xsd:annotation>
+						<xsd:documentation>IRS ES Payment</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+
+				<!-- General Dependency Small for any Form/Schedule -->
+				<xsd:element ref="GeneralDependencySmall" minOccurs="0" maxOccurs="unbounded">
+					<xsd:annotation>
+						<xsd:documentation>General Dependency Small (attachment not identified on the form or instructions)</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+
+				<!-- General Dependency Medium for any Form/Schedule -->
+				<xsd:element ref="GeneralDependencyMedium" minOccurs="0" maxOccurs="unbounded">
+					<xsd:annotation>
+						<xsd:documentation>General Dependency Medium (attachment not identified on the form or instructions)</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+
+				<!-- Binary Attachment -->
+				<xsd:element ref="BinaryAttachment" minOccurs="0" maxOccurs="unbounded">
+					<xsd:annotation>
+						<xsd:documentation>Binary Attachment</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+
+			</xsd:sequence>
+
+			<xsd:attributeGroup ref="ReturnDataAttributes">
+				<xsd:annotation>
+					<xsd:documentation>Common return data attributes</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attributeGroup>
+
+		</xsd:complexType>
+
+	</xsd:element>
+
+</xsd:schema>

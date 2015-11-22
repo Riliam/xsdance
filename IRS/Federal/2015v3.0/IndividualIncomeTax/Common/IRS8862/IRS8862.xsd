@@ -1,0 +1,366 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.irs.gov/efile" targetNamespace="http://www.irs.gov/efile" elementFormDefault="qualified" attributeFormDefault="unqualified">
+	<xsd:annotation>
+		<xsd:documentation>
+			<Description>IRS e-file Individual Income Tax Schema - IRS FORM 8862 Information To Claim Earned Income Credit After Disallowance</Description>
+			<TaxYear>2015</TaxYear>
+			<MaturityLevel>Final Release</MaturityLevel>
+			<ReleaseDate>October 29, 2015</ReleaseDate>
+		</xsd:documentation>
+	</xsd:annotation>
+	<xsd:include schemaLocation="../../../Common/efileTypes.xsd"/>
+	<!-- =============================================================== -->
+	<!-- ======================  IRS FORM 8862 ============================ -->
+	<!-- =============================================================== -->
+	<xsd:element name="IRS8862">
+		<xsd:annotation>
+			<xsd:documentation>IRS FORM 8862</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:complexContent>
+				<xsd:extension base="IRS8862Type">
+					<xsd:attributeGroup ref="DocumentAttributes">
+						<xsd:annotation>
+							<xsd:documentation>Common return document attributes</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attributeGroup>
+					<xsd:attribute name="documentName" type="xsd:string" fixed="IRS8862">
+						<xsd:annotation>
+							<xsd:documentation>IRS internal use only. To avoid error in the return, do not include the attribute name or value.</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+	<xsd:complexType name="IRS8862Type">
+		<xsd:annotation>
+			<xsd:documentation>Content model for FORM 8862</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<!-- ======================== Part I - All Filers ======================-->
+			<!--  Part 1 question 1 -->
+			<xsd:element name="EICEligClmFilingYr" type="YearType">
+				<xsd:annotation>
+					<xsd:documentation>
+						<Description>Year filing form</Description>
+						<LineNumber>1</LineNumber>
+						<ELFFieldNumber>0010</ELFFieldNumber>
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<!--  EIC Elig Clm Incm Incorrect Rpt Ind -->
+			<xsd:element name="EICEligClmIncmIncorrectRptInd" type="BooleanType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						<Description>EIC Elig Clm Incm Incorrect Rpt Ind</Description>
+						<LineNumber>2</LineNumber>
+						<ELFFieldNumber>0012 0014</ELFFieldNumber>
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<!--  EIC Elig Clm Qlfy Chld Of Other Ind -->
+			<xsd:element name="EICEligClmQlfyChldOfOtherInd" type="BooleanType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						<Description>EIC Elig Clm Qlfy Chld Of Other Ind</Description>
+						<LineNumber>3</LineNumber>
+						<ELFFieldNumber>0020 0030</ELFFieldNumber>
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<!-- ======================== Part II - Filers With a Qualifying Child or Children ======================-->
+			<!-- EICEligClmQualifyingChild Info Group -->
+			<xsd:element name="EICEligClmQualifyingChildInfo" minOccurs="0" maxOccurs="3">
+				<xsd:complexType>
+					<xsd:sequence>
+						<!-- EIC Elig Clm Days Chld Lived In US Cnt -->
+						<xsd:element name="EICEligClmDaysChldLivedInUSCnt" type="NumberOfDaysType" minOccurs="0">
+							<xsd:annotation>
+								<xsd:documentation>
+									<Description>EIC Elig Clm Days Chld Lived In US Cnt</Description>
+									<LineNumber>4a 4b 4c</LineNumber>
+									<ELFFieldNumber>0062 0072</ELFFieldNumber>
+								</xsd:documentation>
+							</xsd:annotation>
+						</xsd:element>
+						<!-- EIC Elig Clm Child Birth Month Day -->
+						<xsd:element name="EICEligClmChildBirthMonthDayDt" type="MonthDayType" minOccurs="0">
+							<xsd:annotation>
+								<xsd:documentation>
+									<Description>EIC Elig Clm Child Birth Month Day</Description>
+									<LineNumber>5a(1) 5b(1) 5c(1)</LineNumber>
+									<ELFFieldNumber>0082 0092</ELFFieldNumber>
+								</xsd:documentation>
+							</xsd:annotation>
+						</xsd:element>
+						<!-- EIC Elig Child Death Month Day -->
+						<xsd:element name="EICEligChildDeathMonthDayDt" type="MonthDayType" minOccurs="0">
+							<xsd:annotation>
+								<xsd:documentation>
+									<Description>EIC Elig Child Death Month Day</Description>
+									<LineNumber>5a(2) 5b(2) 5c(2)</LineNumber>
+									<ELFFieldNumber>0084 0094</ELFFieldNumber>
+								</xsd:documentation>
+							</xsd:annotation>
+						</xsd:element>
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+			<!-- EIC Elig Clm Live With Chld1 Addr Grp (Parent Group) -->
+			<xsd:element name="EICEligClmLiveWithChld1AddrGrp" minOccurs="0">
+				<xsd:complexType>
+					<xsd:sequence>
+						<!-- EIC Elig Clm Lived With Chld Addr Grp -->
+						<xsd:element name="EICEligClmLivedWithChldAddrGrp" type="EICEligClmLivedWithChldAddrGrpType" minOccurs="0" maxOccurs="10">
+							<xsd:annotation>
+								<xsd:documentation>
+									<Description>US and Foreign Addr group type</Description>
+									<LineNumber>6a</LineNumber>
+								</xsd:documentation>
+							</xsd:annotation>
+						</xsd:element>
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+			<!-- EIC Elig Clm Live With Chld2 Addr Grp  (Parent Group) -->
+			<xsd:element name="EICEligClmLiveWithChld2AddrGrp" minOccurs="0">
+				<xsd:complexType>
+					<xsd:sequence>
+						<!-- Choice between CheckboxType or AddressType -->
+						<xsd:choice>
+							<!-- EIC Elig Clm Addr Same As Child1 Ind -->
+							<xsd:element name="EICEligClmAddrSameAsChild1Ind" type="CheckboxType" minOccurs="0">
+								<xsd:annotation>
+									<xsd:documentation>
+										<Description>EIC Elig Clm Addr Same As Child1 Ind</Description>
+										<LineNumber>6b</LineNumber>
+										<ELFFieldNumber>0150</ELFFieldNumber>
+									</xsd:documentation>
+								</xsd:annotation>
+							</xsd:element>
+							<!-- Address Group Type -->
+							<xsd:element name="EICEligClmLivedWithChldAddrGrp" type="EICEligClmLivedWithChldAddrGrpType" minOccurs="0" maxOccurs="10">
+								<xsd:annotation>
+									<xsd:documentation>
+										<Description>US and Foreign Addr group type</Description>
+										<LineNumber>6b</LineNumber>
+									</xsd:documentation>
+								</xsd:annotation>
+							</xsd:element>
+						</xsd:choice>
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+			<!-- EIC Elig Clm Live With Chld3 Addr Grp  -->
+			<xsd:element name="EICEligClmLiveWithChld3AddrGrp" minOccurs="0">
+				<xsd:complexType>
+					<xsd:sequence>
+						<!-- Choice between CheckboxType or AddressType -->
+						<xsd:choice>
+							<!-- EIC Elig Clm Addr Same As Child1 Ind -->
+							<xsd:element name="EICEligClmAddrSameAsChild1Ind" type="CheckboxType" minOccurs="0">
+								<xsd:annotation>
+									<xsd:documentation>
+										<Description>EIC Elig Clm Addr Same As Child1 Ind</Description>
+										<LineNumber>6c</LineNumber>
+										<ELFFieldNumber>0150</ELFFieldNumber>
+									</xsd:documentation>
+								</xsd:annotation>
+							</xsd:element>
+							<!-- EIC Elig Clm Addr Same As Child2 Ind -->
+							<xsd:element name="EICEligClmAddrSameAsChild2Ind" type="CheckboxType" minOccurs="0">
+								<xsd:annotation>
+									<xsd:documentation>
+										<Description>EIC Elig Clm Addr Same As Child2 Ind</Description>
+										<LineNumber>6c</LineNumber>
+									</xsd:documentation>
+								</xsd:annotation>
+							</xsd:element>
+							<!-- Address Group Type -->
+							<xsd:element name="EICEligClmLivedWithChldAddrGrp" type="EICEligClmLivedWithChldAddrGrpType" minOccurs="0" maxOccurs="10">
+								<xsd:annotation>
+									<xsd:documentation>
+										<Description>US and Foreign Addr group type</Description>
+										<LineNumber>6c</LineNumber>
+									</xsd:documentation>
+								</xsd:annotation>
+							</xsd:element>
+						</xsd:choice>
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+			<!-- EIC Elig Clm Lived With Others Ind -->
+			<xsd:element name="EICEligClmLivedWithOthersInd" type="BooleanType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						<Description>EIC Elig Clm Lived With Others Ind</Description>
+						<LineNumber>7</LineNumber>
+						<ELFFieldNumber>0290 0300</ELFFieldNumber>
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<!-- EIC Elig Clm Live With Prsn Chld1 Grp   -->
+			<xsd:element name="EICEligClmLiveWithPrsnChld1Grp" minOccurs="0">
+				<xsd:complexType>
+					<xsd:sequence>
+						<!-- Person name and desc Type -->
+						<xsd:element name="EICEligClmLiveWithOthPersonGrp" type="EICEligClmLiveWithOthPersonGrpType" minOccurs="0" maxOccurs="15">
+							<xsd:annotation>
+								<xsd:documentation>
+									<Description>Person name and desc</Description>
+									<LineNumber>7a</LineNumber>
+								</xsd:documentation>
+							</xsd:annotation>
+						</xsd:element>
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+			<!-- EIC Elig Clm Live With Prsn Chld2 Grp -->
+			<xsd:element name="EICEligClmLiveWithPrsnChld2Grp" minOccurs="0">
+				<xsd:complexType>
+					<xsd:sequence>
+						<!-- Choice between CheckboxType or Person name and desc Type -->
+						<xsd:choice minOccurs="0">
+							<!-- EIC Elig Clm Oth Prsn Same Child1 Ind -->
+							<xsd:element name="EICEligClmOthPrsnSameChild1Ind" type="CheckboxType">
+								<xsd:annotation>
+									<xsd:documentation>
+										<Description>EIC Elig Clm Oth Prsn Same Child1 Ind</Description>
+										<LineNumber>7b</LineNumber>
+										<ELFFieldNumber>0370</ELFFieldNumber>
+									</xsd:documentation>
+								</xsd:annotation>
+							</xsd:element>
+							<!-- Person name and desc Type -->
+							<xsd:element name="EICEligClmLiveWithOthPersonGrp" type="EICEligClmLiveWithOthPersonGrpType" maxOccurs="15">
+								<xsd:annotation>
+									<xsd:documentation>
+										<Description>Person name and desc</Description>
+										<LineNumber>7b</LineNumber>
+									</xsd:documentation>
+								</xsd:annotation>
+							</xsd:element>
+						</xsd:choice>
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+			<!-- EIC Elig Clm Live With Prsn Chld3 Grp -->
+			<xsd:element name="EICEligClmLiveWithPrsnChld3Grp" minOccurs="0">
+				<xsd:complexType>
+					<xsd:sequence>
+						<!-- Choice between 2 CheckboxTypes or Person name and desc Type -->
+						<xsd:choice minOccurs="0">
+							<!-- EIC Elig Clm Oth Prsn Same Child1 Ind -->
+							<xsd:element name="EICEligClmOthPrsnSameChild1Ind" type="CheckboxType">
+								<xsd:annotation>
+									<xsd:documentation>
+										<Description>EIC Elig Clm Oth Prsn Same Child1 Ind</Description>
+										<LineNumber>7c</LineNumber>
+										<ELFFieldNumber>0370</ELFFieldNumber>
+									</xsd:documentation>
+								</xsd:annotation>
+							</xsd:element>
+							<!-- EIC Elig Clm Oth Prsn Same Chld2 Ind -->
+							<xsd:element name="EICEligClmOthPrsnSameChld2Ind" type="CheckboxType">
+								<xsd:annotation>
+									<xsd:documentation>
+										<Description>EIC Elig Clm Oth Prsn Same Chld2 Ind</Description>
+										<LineNumber>7c</LineNumber>
+									</xsd:documentation>
+								</xsd:annotation>
+							</xsd:element>
+							<!-- Person name and desc Type -->
+							<xsd:element name="EICEligClmLiveWithOthPersonGrp" type="EICEligClmLiveWithOthPersonGrpType" maxOccurs="15">
+								<xsd:annotation>
+									<xsd:documentation>
+										<Description>Person name and desc</Description>
+										<LineNumber>7c</LineNumber>
+									</xsd:documentation>
+								</xsd:annotation>
+							</xsd:element>
+						</xsd:choice>
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+			<!-- ======================== Part III - Filers Without a Qualifying Child ======================-->
+			<!--  Eligible Claim Days Lived In US -->
+			<xsd:element name="EICEligClmDaysLivedInUSCnt" type="NumberOfDaysType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						<Description>Number of Days lived in US</Description>
+						<LineNumber>8</LineNumber>
+						<ELFFieldNumber>0520</ELFFieldNumber>
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<!--  Eligible Claim Days Spouse Lived In US -->
+			<xsd:element name="EICEligClmDaysSpsLivedInUSCnt" type="NumberOfDaysType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						<Description>Number of Days lived in US if married and filing joint return</Description>
+						<LineNumber>9</LineNumber>
+						<ELFFieldNumber>0530</ELFFieldNumber>
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	<!-- Local Type(s) -->
+	<!-- Address Group Type -->
+	<xsd:complexType name="EICEligClmLivedWithChldAddrGrpType">
+		<xsd:sequence>
+			<!-- Choice between US Address or Foreign Address-->
+			<xsd:choice>
+				<!-- Business US Address -->
+				<xsd:element name="EICEligClmLivedWithChldUSAddr" type="USAddressType">
+					<xsd:annotation>
+						<xsd:documentation>
+							<Description>US address</Description>
+							<LineNumber>6a 6b 6c</LineNumber>
+							<ELFFieldNumber>0133 0137 0141 0144 0145 0147 0246 0250 0255 0260 0265 0270</ELFFieldNumber>
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+				<!-- Foreign Address -->
+				<xsd:element name="EICEligClmLiveWithChldFrgnAddr" type="ForeignAddressType">
+					<xsd:annotation>
+						<xsd:documentation>
+							<Description>Foreign address</Description>
+							<LineNumber>6a 6b 6c</LineNumber>
+							<ELFFieldNumber>0133 0137 0141 0144 0145 0147 0246 0250 0255 0260 0265 0270</ELFFieldNumber>
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+			</xsd:choice>
+		</xsd:sequence>
+	</xsd:complexType>
+	<!-- Person name and desc type -->
+	<xsd:complexType name="EICEligClmLiveWithOthPersonGrpType">
+		<xsd:sequence>
+			<xsd:element name="EICEligClmOtherPersonNm" type="PersonNameType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						<Description>Other Person Name</Description>
+						<LineNumber>7a 7b 7c</LineNumber>
+						<ELFFieldNumber>0310 0330 0350 0380 0400 0420</ELFFieldNumber>
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="EICEligClmOtherPersonRlnDesc" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						<Description>Other Person Relation Description</Description>
+						<LineNumber>7a 7b 7c</LineNumber>
+						<ELFFieldNumber>0320 0340 0360 0390 0410 0430</ELFFieldNumber>
+					</xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:restriction base="TextType">
+						<xsd:maxLength value="11"/>
+					</xsd:restriction>
+				</xsd:simpleType>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+</xsd:schema>

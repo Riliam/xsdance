@@ -1,0 +1,253 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.irs.gov/efile" targetNamespace="http://www.irs.gov/efile" elementFormDefault="qualified" attributeFormDefault="unqualified">
+	
+	<xsd:annotation>
+		<xsd:documentation>
+			<Description>IRS e-file Individual Income Tax Schema - IRS 1040 Schedule 8812 Child Tax Credit</Description>
+			<TaxYear>2015</TaxYear>
+			<MaturityLevel>Final Release</MaturityLevel>
+			<ReleaseDate>October 29, 2015</ReleaseDate>
+		</xsd:documentation>
+	</xsd:annotation>
+	
+	<xsd:include schemaLocation="../../../Common/efileTypes.xsd"/>
+
+	<!-- ======================================================================= -->
+	<!-- ======================== IRS 1040 Schedule 8812 ======================= -->
+	<!-- ======================================================================= -->
+
+	<xsd:element name="IRS1040Schedule8812">
+		<xsd:annotation>
+			<xsd:documentation>IRS 1040 Schedule 8812</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:complexContent>
+				<xsd:extension base="IRS1040Schedule8812Type">
+					<xsd:attributeGroup ref="DocumentAttributes">
+						<xsd:annotation>
+							<xsd:documentation>Common return document attributes</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attributeGroup>
+					<xsd:attribute name="documentName" type="xsd:string" fixed="IRS1040Schedule8812">
+						<xsd:annotation>
+							<xsd:documentation>IRS internal use only. To avoid error in the return, do not include the attribute name or value.</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:complexType name="IRS1040Schedule8812Type">
+		<xsd:annotation>
+			<xsd:documentation>Content model for Schedule 8812</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+
+			<!-- Part I - Filers Who Have Certain Child Dependent(s) with an ITIN (Individual Taxpayer Identification Number) -->
+			<xsd:element name="QualifiedChildDepdWithITINGrp" minOccurs="0" maxOccurs="100">
+				<xsd:complexType>
+					<xsd:sequence>
+						<!-- Qualified Child Dependent With ITIN Indicator Checked Yes -->
+						<xsd:element name="QlfyChildDepdWithITINYesInd" type="CheckboxType" minOccurs="0">
+							<xsd:annotation>
+								<xsd:documentation>
+									<Description>Qualified Child Dependent With ITIN Indicator Checked Yes</Description>
+									<LineNumber>A, B, C, D, ...</LineNumber>
+									<ELFFieldNumber>NL</ELFFieldNumber>
+								</xsd:documentation>
+							</xsd:annotation>
+						</xsd:element>
+						<!-- Qualified Child Dependent With ITIN Indicator Checked No -->
+						<xsd:element name="QlfyChildDepdWithITINNoInd" type="CheckboxType" minOccurs="0">
+							<xsd:annotation>
+								<xsd:documentation>
+									<Description>Qualified Child Dependent With ITIN Indicator Checked No</Description>
+									<LineNumber>A, B, C, D, ...</LineNumber>
+									<ELFFieldNumber>NL</ELFFieldNumber>
+								</xsd:documentation>
+							</xsd:annotation>
+						</xsd:element>
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+			<!-- Over Limit Qualifying Child Dependent With ITIN Indicator -->
+			<xsd:element name="OverLmtQlfyChldDepdWithITINInd" type="CheckboxType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						<Description>Over Limit Qualifying Child Dependent With ITIN Indicator</Description>
+						<LineNumber>Note</LineNumber>
+						<ELFFieldNumber>NL</ELFFieldNumber>
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+
+			<!-- Part II Additional Child Tax Credit Filers -->
+			<!-- Child Tax Credit Worksheet Amount -->
+			<xsd:element name="ChildTaxCreditWrkshtAmt" type="USAmountType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						<Description>Child Tax Credit Worksheet Amount</Description>
+						<LineNumber>1</LineNumber>
+						<ELFFieldNumber>0008</ELFFieldNumber>
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<!-- Child Tax Credit From Return Amount -->
+			<xsd:element name="ChildTaxCreditAmt" type="USAmountType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						<Description>Child Tax Credit Amount</Description>
+						<LineNumber>2</LineNumber>
+						<ELFFieldNumber>0012</ELFFieldNumber>
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<!-- Net From Worksheet Amount -->
+			<xsd:element name="NetFromWorksheetAmt" type="USAmountType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						<Description>Net From Worksheet Amount</Description>
+						<LineNumber>3</LineNumber>
+						<ELFFieldNumber>0016</ELFFieldNumber>
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<!-- Total Earned Income Amount -->
+			<xsd:element name="TotalEarnedIncomeAmt" type="USAmountType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						<Description>Total Earned Income Amount</Description>
+						<LineNumber>4a</LineNumber>
+						<ELFFieldNumber>0021</ELFFieldNumber>
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<!-- Nontaxable Combat Pay Amount -->
+			<xsd:element name="NontaxableCombatPayAmt" type="USAmountType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						<Description>Nontaxable Combat Pay Amount</Description>
+						<LineNumber>4b</LineNumber>
+						<ELFFieldNumber>0023</ELFFieldNumber>
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<!-- Earned Income More Than Specified Indicator -->
+			<xsd:element name="EarnedIncmMoreThanSpecifiedInd" type="BooleanType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						<Description>Earned Income More Than Specified Indicator</Description>
+						<LineNumber>5</LineNumber>
+						<ELFFieldNumber>0025 0035</ELFFieldNumber>
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<!-- Net Total Earned Income Amount -->
+			<xsd:element name="NetTotalEarnedIncomeAmt" type="USAmountType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						<Description>Net Total Earned Income Amount</Description>
+						<LineNumber>5</LineNumber>
+						<ELFFieldNumber>0038</ELFFieldNumber>
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<!-- Net Earned Income Calculated Amount -->
+			<xsd:element name="NetEarnedIncomeCalculatedAmt" type="USAmountType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						<Description>Net Earned Income Calculated Amount</Description>
+						<LineNumber>6</LineNumber>
+						<ELFFieldNumber>0045</ELFFieldNumber>
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<!-- Three Or More Qualifying Children Indicator -->
+			<xsd:element name="ThreeOrMoreQlfyChildrenInd" type="BooleanType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						<Description>Three Or More Qualifying Children Indicator</Description>
+						<LineNumber>6</LineNumber>
+						<ELFFieldNumber>0054 0058</ELFFieldNumber>
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+
+			<!-- Part III Certain Filers Who Have Three or More Qualifying Children -->
+			<!-- From W2 Amount -->
+			<xsd:element name="FromW2Amt" type="USAmountType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						<Description>From W2 Amount</Description>
+						<LineNumber>7</LineNumber>
+						<ELFFieldNumber>0075</ELFFieldNumber>
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<!-- From Tax Return Amount -->
+			<xsd:element name="FromTaxReturnAmt" type="USAmountType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						<Description>From Tax Return Amount</Description>
+						<LineNumber>8</LineNumber>
+						<ELFFieldNumber>0085</ELFFieldNumber>
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<!-- Calculate From W2 and Return Amount -->
+			<xsd:element name="CalcFromW2AndReturnAmt" type="USAmountType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						<Description>Calculate From W2 and Return Amount</Description>
+						<LineNumber>9</LineNumber>
+						<ELFFieldNumber>0095</ELFFieldNumber>
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<!-- Calculate Amount From Return Plus Tax Withheld Amount -->
+			<xsd:element name="CalcAmtFromRetPlusTaxWhldAmt" type="USAmountType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						<Description>Calculate Amount From Return Plus Tax Withheld Amount</Description>
+						<LineNumber>10</LineNumber>
+						<ELFFieldNumber>0105</ELFFieldNumber>
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<!-- Calculated Difference Amount -->
+			<xsd:element name="CalculatedDifferenceAmt" type="USAmountType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						<Description>Calculated Difference Amount</Description>
+						<LineNumber>11</LineNumber>
+						<ELFFieldNumber>0110</ELFFieldNumber>
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<!-- Larger Calculated Income Or Difference Amount -->
+			<xsd:element name="LargerCalcIncomeOrDiffAmt" type="USAmountType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						<Description>Larger Calculated Income Or Difference Amount</Description>
+						<LineNumber>12</LineNumber>
+						<ELFFieldNumber>0115</ELFFieldNumber>
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+
+			<!-- Part IV Additional Child Tax Credit -->
+			<!-- Additional Child Tax Credit Amount -->
+			<xsd:element name="AdditionalChildTaxCreditAmt" type="USAmountNNType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						<Description>Additional Child Tax Credit Amount</Description>
+						<LineNumber>13</LineNumber>
+						<ELFFieldNumber>0140</ELFFieldNumber>
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+
+		</xsd:sequence>
+	</xsd:complexType>
+</xsd:schema>

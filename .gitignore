@@ -2,8 +2,6 @@ __pycache__
 tests.py
 venv
 index.html
-IRS
-test_generator.py
 test_element.py
 element.pyc
 generator.pyc

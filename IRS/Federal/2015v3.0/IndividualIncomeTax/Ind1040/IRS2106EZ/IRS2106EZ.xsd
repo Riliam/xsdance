@@ -1,0 +1,235 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns="http://www.irs.gov/efile" xmlns:xsd="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.irs.gov/efile" elementFormDefault="qualified" attributeFormDefault="unqualified" version="1.0">
+	<xsd:annotation>
+		<xsd:documentation>
+			<Description>IRS e-file Individual Income Tax Schema - IRS Form 2106-EZ Unreimbursed Employee Business Expenses</Description>
+			<TaxYear>2015</TaxYear>
+			<MaturityLevel>Final Release</MaturityLevel>
+			<ReleaseDate>October 29, 2015</ReleaseDate>
+		</xsd:documentation>
+	</xsd:annotation>
+	
+	<xsd:include schemaLocation="../../../Common/efileTypes.xsd"/>
+	
+	<!-- ================================================================== -->
+	<!-- ======================== IRS Form 2106-EZ ======================== -->
+	<!-- ================================================================== -->
+	
+	<xsd:element name="IRS2106EZ">
+		<xsd:annotation>
+			<xsd:documentation>IRS Form 2106-EZ</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:complexContent>
+				<xsd:extension base="IRS2106EZType">
+					<xsd:attributeGroup ref="DocumentAttributes">
+						<xsd:annotation>
+							<xsd:documentation>Common return document attributes</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attributeGroup>
+					<xsd:attribute name="documentName" type="xsd:string" fixed="IRS2106EZ"/>
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+	
+	<xsd:complexType name="IRS2106EZType">
+		<xsd:annotation>
+			<xsd:documentation>Content model for Form 2106-EZ</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+		
+			<!-- Name -->
+			<xsd:element name="PersonNm" type="PersonNameType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						<Description>Name</Description>
+						<ELFFieldNumber>0007</ELFFieldNumber>
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+
+			<!-- Occupation -->
+			<xsd:element name="OccupationTxt" type="PersonTitleType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						<Description>Occupation</Description>
+						<ELFFieldNumber>0008</ELFFieldNumber>
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			
+			<!-- SSN of Taxpayer -->
+			<xsd:element name="SSN" type="SSNType">
+				<xsd:annotation>
+					<xsd:documentation>
+						<Description>SSN of Taxpayer</Description>
+						<ELFFieldNumber>0009</ELFFieldNumber>
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			
+			<!--Vehicle Expense Amount -->
+			<xsd:element name="VehicleExpenseAmt" type="USAmountType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						<Description>Vehicle Expense Amount</Description>
+						<LineNumber>1</LineNumber>
+						<ELFFieldNumber>0010</ELFFieldNumber>
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<!--Parking Fees Tolls Local Transportation Amount -->
+			<xsd:element name="ParkingFeesTollsLocalTransAmt" type="USAmountType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						<Description>Parking Fees Tolls Local Transportation Amount</Description>
+						<LineNumber>2</LineNumber>
+						<ELFFieldNumber>0015</ELFFieldNumber>
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<!--Traveler Expense Lesser Meals Entertainment Amount -->
+			<xsd:element name="TravExpnsLessMealsEntrmtAmt" type="USAmountType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						<Description>Traveler Expense Lesser Meals Entertainment Amount</Description>
+						<LineNumber>3</LineNumber>
+						<ELFFieldNumber>0017</ELFFieldNumber>
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<!--Business Expenses Lesser Meals Entertainment Amount -->
+			<xsd:element name="BusExpnssLessMealsEntrmtAmt" type="USAmountType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						<Description>Business Expenses Lesser Meals Entertainment Amount</Description>
+						<LineNumber>4</LineNumber>
+						<ELFFieldNumber>0023</ELFFieldNumber>
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<!--Meals And Entertainment Expenses Amount -->
+			<xsd:element name="MealsAndEntertainmentAmt" type="USAmountType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						<Description>Meals And Entertainment Expenses Amount</Description>
+						<LineNumber>5</LineNumber>
+						<ELFFieldNumber>0025</ELFFieldNumber>
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<!--Meals And Entertainment Expenses Allowable Amount -->
+			<xsd:element name="MealsAndEntrmtExpnssAllwblAmt" type="USAmountType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						<Description>Meals And Entertainment Expenses Allowable Amount</Description>
+						<LineNumber>5</LineNumber>
+						<ELFFieldNumber>0027</ELFFieldNumber>
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<!--Unreimbursed Employee Business Expense Amount -->
+			<xsd:element name="UnreimEmployeeBusExpnsAmt" type="USAmountType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						<Description>Unreimbursed Employee Business Expense Amount</Description>
+						<LineNumber>6</LineNumber>
+						<ELFFieldNumber>0031</ELFFieldNumber>
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			
+			<!--        Part II Information on Your Vehicle  -->
+			<!-- Vehicle use Information Group -->
+			
+			<xsd:element name="VehicleUseInformationGrp" minOccurs="0" maxOccurs="unbounded">
+				<xsd:complexType>
+					<xsd:sequence>
+						<!-- Vehicle Placed in Service Date -->
+						<xsd:element name="VehiclePlacedInServiceDt" type="DateType" minOccurs="0">
+							<xsd:annotation>
+								<xsd:documentation>
+									<Description>Vehicle Placed In Service Date</Description>
+									<LineNumber>7</LineNumber>
+									<ELFFieldNumber>0134</ELFFieldNumber>
+								</xsd:documentation>
+							</xsd:annotation>
+						</xsd:element>
+						<!--Business Miles Count -->
+						<xsd:element name="BusinessMilesCnt" type="MilesType" minOccurs="0">
+							<xsd:annotation>
+								<xsd:documentation>
+									<Description>Business Miles Count</Description>
+									<LineNumber>8a</LineNumber>
+									<ELFFieldNumber>0145</ELFFieldNumber>
+								</xsd:documentation>
+							</xsd:annotation>
+						</xsd:element>
+						<!--Commuting Miles Count -->
+						<xsd:element name="CommutingMilesCnt" type="MilesType" minOccurs="0">
+							<xsd:annotation>
+								<xsd:documentation>
+									<Description>Commuting Miles Count</Description>
+									<LineNumber>8b</LineNumber>
+									<ELFFieldNumber>0175</ELFFieldNumber>
+								</xsd:documentation>
+							</xsd:annotation>
+						</xsd:element>
+						<!--Other Miles Count -->
+						<xsd:element name="OtherMilesCnt" type="MilesType" minOccurs="0">
+							<xsd:annotation>
+								<xsd:documentation>
+									<Description>Other Miles Count</Description>
+									<LineNumber>8c</LineNumber>
+									<ELFFieldNumber>0185</ELFFieldNumber>
+								</xsd:documentation>
+							</xsd:annotation>
+						</xsd:element>
+						<!--Available Forested Off Duty Hours Indicator -->
+						<xsd:element name="VehicleAvailableOffDutyHrsInd" type="BooleanType" minOccurs="0">
+							<xsd:annotation>
+								<xsd:documentation>
+									<Description>Available Forested Off Duty Hours Indicator</Description>
+									<LineNumber>9</LineNumber>
+									<ELFFieldNumber>0260 0265</ELFFieldNumber>
+								</xsd:documentation>
+							</xsd:annotation>
+						</xsd:element>
+						<!--Another Vehicle Indicator -->
+						<xsd:element name="AnotherVehicleForPrsnlUseInd" type="BooleanType" minOccurs="0">
+							<xsd:annotation>
+								<xsd:documentation>
+									<Description>Another Vehicle Indicator</Description>
+									<LineNumber>10</LineNumber>
+									<ELFFieldNumber>0271 0276</ELFFieldNumber>
+								</xsd:documentation>
+							</xsd:annotation>
+						</xsd:element>
+						<!--Evidence To Support Deduction Indicator -->
+						<xsd:element name="EvidenceToSupportDeductionInd" type="BooleanType" minOccurs="0">
+							<xsd:annotation>
+								<xsd:documentation>
+									<Description>Evidence To Support Deduction Indicator</Description>
+									<LineNumber>11a</LineNumber>
+									<ELFFieldNumber>0290 0295</ELFFieldNumber>
+								</xsd:documentation>
+							</xsd:annotation>
+						</xsd:element>
+						<!--Evidence Written Indicator -->
+						<xsd:element name="EvidenceWrittenInd" type="BooleanType" minOccurs="0">
+							<xsd:annotation>
+								<xsd:documentation>
+									<Description>Evidence Written Indicator</Description>
+									<LineNumber>11b</LineNumber>
+									<ELFFieldNumber>0300 0305</ELFFieldNumber>
+								</xsd:documentation>
+							</xsd:annotation>
+						</xsd:element>					
+					</xsd:sequence>
+				</xsd:complexType>
+
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+</xsd:schema>
