@@ -1,9 +1,11 @@
 from utils import serialize_xml, serialize_json, make_exception
 
+class ValueRequiredError(BaseException):
+    pass
 
 class Element(object):
 
-    ValueRequiredError = make_exception('ValueRequiredError')
+    ValueRequiredError = ValueRequiredError
 
     nesting_connector = '__'
     default_html_label = '<label for="{name}">{label_text}</label>'
