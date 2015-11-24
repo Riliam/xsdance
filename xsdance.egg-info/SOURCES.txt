@@ -1,0 +1,11 @@
+xsdance/__init__.py
+xsdance/element.py
+xsdance/generator.py
+xsdance/test_generator.py
+xsdance/utils.py
+xsdance.egg-info/PKG-INFO
+xsdance.egg-info/SOURCES.txt
+xsdance.egg-info/dependency_links.txt
+xsdance.egg-info/not-zip-safe
+xsdance.egg-info/requires.txt
+xsdance.egg-info/top_level.txt
