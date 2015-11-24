@@ -4,7 +4,7 @@ import os
 from lxml import etree
 
 from element import Element
-from utils import make_exception, Validator
+from utils import Validator
 
 _ = lambda x: x
 
@@ -46,10 +46,18 @@ class CheckboxProcessor(object):
         return self.value if v else ''
 
 
+class ElementNotFound(BaseException):
+    pass
+
+
+class TypeNotFound(BaseException):
+    pass
+
+
 class Generator(object):
 
-    ElementNotFound = make_exception('ElementNotFound')
-    TypeNotFound = make_exception('TypeNotFound')
+    ElementNotFound = ElementNotFound
+    TypeNotFound = TypeNotFound
     PRIMITIVE_TYPES_PATH = 'IRS/primitive_types.xsd'
     UNBOUNDED = 999
 
