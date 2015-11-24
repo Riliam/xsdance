@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+from __future__ import unicode_literals, print_function, division, absolute_import  # NOQA
+
 from collections import defaultdict
 import re
 import json
@@ -8,10 +11,6 @@ from lxml import etree
 tree = lambda: defaultdict(tree)
 
 re_inline_parent_name = re.compile(r'([a-zA-Z0-9]+)#\{\1:([0-9]+)\}')
-
-
-def make_exception(name):
-    return type(name, (BaseException,), {})
 
 
 def add(d, keys, value, process_input=lambda value, _: value):
@@ -61,16 +60,16 @@ def serialize_json(d):
 
 
 funcs = {
-    'minLength': (lambda r, v: len(str(v)) >= int(r),
+    'minLength': (lambda r, v: len(unicode(v)) >= int(r),
                   'Length should be greater than {rvalue}'),
 
-    'length': (lambda r, v: len(str(v)) == int(r),
+    'length': (lambda r, v: len(unicode(v)) == int(r),
                'Length should be equal to {rvalue}'),
 
-    'maxLength': (lambda r, v: len(str(v)) <= int(r),
-                  'Length should be lesst than {rvalue}'),
+    'maxLength': (lambda r, v: len(unicode(v)) <= int(r),
+                  'Length should be less than {rvalue}'),
 
-    'pattern': (lambda r, v: re.match(str(r), str(v)),
+    'pattern': (lambda r, v: re.match(unicode(r), unicode(v)),
                 'Value should match {rvalue}'),
 
     'enumeration': (lambda r, v: v in r + ['', None],
@@ -88,10 +87,10 @@ funcs = {
     'minExclusive': (lambda r, v: int(v) > int(r),
                      'Should be greater than {rvalue}'),
 
-    'totalDigits': (lambda r, v: len(re.sub('[,.L]', '', str(v))) < int(r),
+    'totalDigits': (lambda r, v: len(re.sub('[,.L]', '', unicode(v))) < int(r),
                     'Total digits count should be less than {rvalue}'),
 
-    'fractionDigits': (lambda r, v: len(str(v).split('.')[-1]) < int(r),
+    'fractionDigits': (lambda r, v: len(unicode(v).split('.')[-1]) < int(r),
                        'Fraction digits count should be less than {rvalue}'),
 
     'whiteSpace': (lambda r, v: True, 'Error message'),
@@ -102,12 +101,20 @@ funcs = {
 
 class Validator:
 
+    general_error_messages = {
+        'incorrect_value': 'Incorrect value'
+    }
+
     def __init__(self, rname, rvalue):
         self.test_func, self.error_message = funcs[rname]
         self.rvalue = rvalue
 
     def __call__(self, value):
         result = False
-        result = self.test_func(self.rvalue, value)
+        try:
+            result = self.test_func(self.rvalue, value)
+        except:
+            return self.general_error_messages['incorrect_value']
+
         if not result:
-            return self.error_message.format(rvalue=str(self.rvalue).decode('utf-8'))
+            return self.error_message.format(rvalue=unicode(self.rvalue))
