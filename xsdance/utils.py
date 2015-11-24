@@ -28,7 +28,7 @@ def add(d, keys, value, process_input=lambda value, _: value):
         # or add value, if element is last
         last_element = (i == len(keys) - 1)
         if last_element:
-            d[key] = process_input(value, d[key])
+            d[key] = process_input(value, d[key]) or None
         else:
             d = d[key]
 
@@ -61,31 +61,31 @@ def serialize_json(d):
 
 
 funcs = {
-    'minLength': (lambda r, v: len(v) >= int(r),
+    'minLength': (lambda r, v: len(str(v)) >= int(r),
                   'Length should be greater than {rvalue}'),
 
-    'length': (lambda r, v: len(v) == int(r),
+    'length': (lambda r, v: len(str(v)) == int(r),
                'Length should be equal to {rvalue}'),
 
-    'maxLength': (lambda r, v: len(v) <= int(r),
+    'maxLength': (lambda r, v: len(str(v)) <= int(r),
                   'Length should be lesst than {rvalue}'),
 
-    'pattern': (lambda r, v: re.match(r, str(v)),
+    'pattern': (lambda r, v: re.match(str(r), str(v)),
                 'Value should match {rvalue}'),
 
-    'enumeration': (lambda r, v: v in r,
+    'enumeration': (lambda r, v: v in r + ['', None],
                     'Should be one of {rvalue}'),
 
-    'maxInclusive': (lambda r, v: v <= int(r),
+    'maxInclusive': (lambda r, v: int(v) <= int(r),
                      'Should be less than or equal to {rvalue}'),
 
-    'maxExclusive': (lambda r, v: v < int(r),
+    'maxExclusive': (lambda r, v: int(v) < int(r),
                      'Should be less than {rvalue}'),
 
-    'minInclusive': (lambda r, v: v >= int(r),
+    'minInclusive': (lambda r, v: int(v) >= int(r),
                      'Should be greater than or equal to {rvalue}'),
 
-    'minExclusive': (lambda r, v: v > int(r),
+    'minExclusive': (lambda r, v: int(v) > int(r),
                      'Should be greater than {rvalue}'),
 
     'totalDigits': (lambda r, v: len(re.sub('[,.L]', '', str(v))) < int(r),
@@ -110,4 +110,4 @@ class Validator:
         result = False
         result = self.test_func(self.rvalue, value)
         if not result:
-            return self.error_message.format(rvalue=self.rvalue, value=value)
+            return self.error_message.format(rvalue=str(self.rvalue).decode('utf-8'))

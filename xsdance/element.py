@@ -1,7 +1,9 @@
-from utils import serialize_xml, serialize_json, make_exception
+from utils import serialize_xml, serialize_json
+
 
 class ValueRequiredError(BaseException):
     pass
+
 
 class Element(object):
 
@@ -152,7 +154,7 @@ class Element(object):
 
     def validate(self, d):
         errors = {}
-        value = d[self.name]
+        value = d.get(self.name, {})
         for sub in self.subelements:
             v = sub.process_value(value.get(sub.name, None))
             if v is None and sub.min_occurs > 0:

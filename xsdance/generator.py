@@ -89,7 +89,7 @@ class Generator(object):
         self.nsmap.pop(None)
         # STOP weird magic
 
-        primitive_types = etree.parse(Generator.PRIMITIVE_TYPES_PATH)
+        primitive_types = etree.parse(self.PRIMITIVE_TYPES_PATH)
         primitive_types_root = primitive_types.getroot()
         self.includes.append(primitive_types_root)
         assert self.nsmap['xsd'] == primitive_types_root.nsmap['xsd']
@@ -208,6 +208,7 @@ class Generator(object):
 
         restrictions = [(x.get_tag(n), n.attrib.get('value', '')) for n in node
                         if x.get_tag(n) != 'enumeration']
+
         for rname, rvalue in restrictions:
             el.add_validator(Validator(rname, rvalue))
 
