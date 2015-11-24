@@ -224,3 +224,7 @@ class Element(object):
         if 'choice' not in self.parent.name:
             required = self.html_required if self.min_occurs > 0 else ''
         return required
+
+    def set_initial_data(self, data):
+        self.initial_data = data
+        return self
