@@ -12,10 +12,11 @@ class Element(object):
     nesting_connector = '__'
     default_html_label = '<label for="{name}">{label_text}</label>'
     default_html_help = '<span for="{name}" class="help-text">{help_text}</span>'  # NOQA
-    default_html_input = '<input id="{name}" name="{name}" value="{value}"{disabled}/>{edit_checkbox}'
+    default_html_input = '<input id="{name}" name="{name}" value="{value}"{disabled}/>'
     default_html_edit_checkbox = '<label for="ch_hide_{name}">Hide</label><input id="ch_hide_{name}" name="ch_hide_{name}" type="checkbox"/>'  # noqa
     default_html_wrapper =\
         '''<div data-element={name}>
+            {edit_checkbox}
                {content}
                <span class="error"></span>
            </div>'''
@@ -100,26 +101,36 @@ class Element(object):
                 name=name)
         return name
 
-    def render_html(self, inlines=None, edit_mode=False):
+    def render_html(self, inlines=None, edit_mode=False, hidden_fields=None):
+        hidden_fields = hidden_fields or []
+        if self.prefixed_name in hidden_fields:
+            return None
+
         html_help = self.html_help.format(
             name=self.prefixed_name,
             help_text=self.help_text or '')
         html_subelements = self._render_subelements_html(
             inlines=self.min_occurs if self.max_occurs > 1 else None,
             edit_mode=edit_mode,
+            hidden_fields=hidden_fields,
         )
-        content = html_subelements\
-            or self._html_input_with_value(inlines=inlines, edit_mode=edit_mode)
+
         edit_checkbox = edit_mode and self.html_edit_checkbox.format(name=self.prefixed_name) or ''
-        content = content + html_help
+        if html_subelements is not None:
+            content = html_subelements \
+                or self._html_input_with_value(inlines=inlines, edit_mode=edit_mode)
+            content = content + html_help
+        else:
+            content = ''
         return self.html_wrapper.format(
             edit_checkbox=edit_checkbox,
             name=self.prefixed_name,
             content=content)
 
-    def _render_subelements_html(self, inlines=None, edit_mode=False):
-        content = ''.join(el.render_html(inlines=inlines, edit_mode=edit_mode)
-                          for el in self.subelements)
+    def _render_subelements_html(self, inlines=None, edit_mode=False, hidden_fields=None):
+        elements = [el.render_html(inlines=inlines, edit_mode=edit_mode, hidden_fields=hidden_fields)
+                    for el in self.subelements]
+        content = ''.join([el for el in elements if el])
         name = self.name
         if inlines is not None:
             name = '{}_#0'.format(name)
