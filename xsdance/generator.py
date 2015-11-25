@@ -62,7 +62,7 @@ class Generator(object):
     UNBOUNDED = 999
 
     html_checkbox = '''
-        <input type="checkbox" name="{{name}}" id="{{name}}" value="{value}"{{disabled}}/>
+        <input type="checkbox" name="{{name}}" id="{{name}}" value="{value}"{{disabled}} {{checked}}/>
     '''
     html_select = '''
         <select {multiple} name="{{name}}"{{disabled}}>

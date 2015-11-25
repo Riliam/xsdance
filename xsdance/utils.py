@@ -90,7 +90,7 @@ funcs = {
     'totalDigits': (lambda r, v: len(re.sub('[,.L]', '', unicode(v))) < int(r),
                     'Total digits count should be less than {rvalue}'),
 
-    'fractionDigits': (lambda r, v: len(unicode(v).split('.')[-1]) < int(r),
+    'fractionDigits': (lambda r, v: len(unicode(v).split('.')[-1]) if '.' in unicode(v) else 0 <= int(r),
                        'Fraction digits count should be less than {rvalue}'),
 
     'whiteSpace': (lambda r, v: True, 'Error message'),
@@ -117,4 +117,4 @@ class Validator:
             return self.general_error_messages['incorrect_value']
 
         if not result:
-            return self.error_message.format(rvalue=unicode(self.rvalue))
+            return self.error_message.format(rvalue=unicode(self.rvalue), value=unicode(value))
