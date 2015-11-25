@@ -137,13 +137,20 @@ class Element(object):
                 name=name,
                 label_text=self.label_text or name,
             )
+            value = self.initial_data.get(self.name) or ''
+            checked = ' checked' if self.is_checkbox and value else ''
             html_input = self.html_input.format(
                 disabled=disable_inputs and ' disabled' or '',
                 name=name,
-                value=self.initial_data.get(self.name) or ''
+                value=value,
+                checked=checked,
             )
             return html_label + self.required() + html_input
         return ''
+
+    @property
+    def is_checkbox(self):
+        return 'type="checkbox"' in self.html_input
 
     def render_xml(self):
         if not self.initial_data:
@@ -230,4 +237,7 @@ class Element(object):
 
     def set_initial_data(self, data):
         self.initial_data = data
+        if data:
+            for el in self.subelements:
+                el.set_initial_data(data.get(self.name))
         return self

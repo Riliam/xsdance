@@ -5,3 +5,4 @@ index.html
 test_element.py
 xsdance.egg-info
 *.pyc
+*.orig
