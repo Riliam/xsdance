@@ -3,8 +3,5 @@ tests.py
 venv
 index.html
 test_element.py
-element.pyc
-generator.pyc
-utils.pyc
-validators.pyc
 xsdance.egg-info
+*.pyc
