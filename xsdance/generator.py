@@ -1,6 +1,7 @@
 import copy
 import os
 
+import uuid
 from lxml import etree
 
 from element import Element
@@ -78,6 +79,7 @@ class Generator(object):
 
         self.includes = []
         self.root = None
+        self.choice_counter = 0
 
     def run(self, xsd_filepath):
         self.filepath = xsd_filepath
@@ -140,7 +142,9 @@ class Generator(object):
         self._process_subnodes(node, new_el)
 
     def parse_choice(self, node, parent_el):
-        choice_element = Element(':choice:')
+        choice_name = ':choice_{}:'.format(self.choice_counter)
+        self.choice_counter += 1
+        choice_element = Element(choice_name)
         parent_el.add_subelement(choice_element)
 
         min_occurs = int(node.attrib.get('minOccurs', 1))
