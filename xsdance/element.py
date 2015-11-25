@@ -12,7 +12,7 @@ class Element(object):
     nesting_connector = '__'
     default_html_label = '<label for="{name}">{label_text}</label>'
     default_html_help = '<span for="{name}" class="help-text">{help_text}</span>'  # NOQA
-    default_html_input = '<input id="{name}" name="{name}" value="{value}"/>'
+    default_html_input = '<input id="{name}" name="{name}" value="{value}"{disabled}/>'
     default_html_wrapper =\
         '''<div data-element={name}>
                {content}
@@ -97,21 +97,23 @@ class Element(object):
                 name=name)
         return name
 
-    def render_html(self, inlines=None):
+    def render_html(self, inlines=None, disable_inputs=False):
         html_help = self.html_help.format(
             name=self.prefixed_name,
             help_text=self.help_text or '')
         html_subelements = self._render_subelements_html(
-            inlines=self.min_occurs if self.max_occurs > 1 else None)
+            inlines=self.min_occurs if self.max_occurs > 1 else None,
+            disable_inputs=disable_inputs,
+        )
         content = html_subelements\
-            or self._html_input_with_value(inlines=inlines)
+            or self._html_input_with_value(inlines=inlines, disable_inputs=disable_inputs)
         content = content + html_help
         return self.html_wrapper.format(
             name=self.prefixed_name,
             content=content)
 
-    def _render_subelements_html(self, inlines=None):
-        content = ''.join(el.render_html(inlines=inlines)
+    def _render_subelements_html(self, inlines=None, disable_inputs=False):
+        content = ''.join(el.render_html(inlines=inlines, disable_inputs=disable_inputs)
                           for el in self.subelements)
         name = self.name
         if inlines is not None:
@@ -124,7 +126,7 @@ class Element(object):
                 content=content)
         return content
 
-    def _html_input_with_value(self, inlines=None):
+    def _html_input_with_value(self, inlines=None, disable_inputs=False):
         name = self.prefixed_name
         if inlines is not None:
             name = '{}_#0'.format(name)
@@ -136,6 +138,7 @@ class Element(object):
                 label_text=self.label_text or name,
             )
             html_input = self.html_input.format(
+                disabled=disable_inputs and ' disabled' or '',
                 name=name,
                 value=self.initial_data.get(self.name) or ''
             )
