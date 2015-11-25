@@ -230,7 +230,7 @@ class Generator(object):
                 el.html_input = html_input
                 el.add_processor(CheckboxProcessor(value))
             else:
-                choices = list(zip(enum_items, enum_items))
+                choices = [(None, '------')] + list(zip(enum_items, enum_items))
                 options = [self.html_option.format(value=value, text=text)
                            for value, text in choices]
                 html_input = self.html_select.format(
