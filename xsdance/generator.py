@@ -62,10 +62,10 @@ class Generator(object):
     UNBOUNDED = 999
 
     html_checkbox = '''
-        <input type="checkbox" name="{{name}}" id="{{name}}" value="{value}"/>
+        <input type="checkbox" name="{{name}}" id="{{name}}" value="{value}"{{disabled}}/>
     '''
     html_select = '''
-        <select {multiple} name="{{name}}">
+        <select {multiple} name="{{name}}"{{disabled}}>
             {options}
         </select>
     '''
@@ -168,9 +168,12 @@ class Generator(object):
         self._process_subnodes(node, choice_element)
 
     def parse_annotation(self, node, el):
-        description =\
+        description_1 = \
             node.find('.//none:Description', namespaces=self.nsmap)
-        el.label_text = el.label_text or getattr(description, 'text', '')
+        description_2 = \
+            node.find('.//xsd:Description', namespaces=self.nsmap)
+        el.label_text = el.label_text or getattr(description_1, 'text', '') or \
+            getattr(description_2, 'text', '')
         el.add_kwargs(**x.element_content_to_dict(node))
 
     def parse_sequence(self, node, el):
