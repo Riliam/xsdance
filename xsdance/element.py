@@ -13,7 +13,7 @@ class Element(object):
     default_html_label = '<label for="{name}">{label_text}</label>'
     default_html_help = '<span for="{name}" class="help-text">{help_text}</span>'  # NOQA
     default_html_input = '<input id="{name}" name="{name}" value="{value}"{disabled}/>'
-    default_html_edit_checkbox = '<label for="ch_hide_{name}">Hide</label><input id="ch_hide_{name}" name="ch_hide_{name}" type="checkbox"/>'  # noqa
+    default_html_edit_checkbox = '<label for="ch_hide_{name}">Hide</label><input id="ch_hide_{name}" name="ch_hide_{name}" type="checkbox" {checked}/>'  # noqa
     default_html_wrapper =\
         '''<div data-element={name}>
             {edit_checkbox}
@@ -101,9 +101,24 @@ class Element(object):
                 name=name)
         return name
 
+    def get_edit_checkbox_input(self, edit_mode, hidden_fields):
+        edit_checkbox = ''
+        if edit_mode:
+            edit_checkbox = self.html_edit_checkbox.format(
+                name=self.prefixed_name,
+                checked='',
+            )
+            if self.prefixed_name in hidden_fields:
+                edit_checkbox = self.html_edit_checkbox.format(
+                    name=self.prefixed_name,
+                    checked='checked',
+                )
+        return edit_checkbox
+
     def render_html(self, inlines=None, edit_mode=False, hidden_fields=None):
+
         hidden_fields = hidden_fields or []
-        if self.prefixed_name in hidden_fields:
+        if not edit_mode and self.prefixed_name in hidden_fields:
             return None
 
         html_help = self.html_help.format(
@@ -115,20 +130,24 @@ class Element(object):
             hidden_fields=hidden_fields,
         )
 
-        edit_checkbox = edit_mode and self.html_edit_checkbox.format(name=self.prefixed_name) or ''
         if html_subelements is not None:
             content = html_subelements \
-                or self._html_input_with_value(inlines=inlines, edit_mode=edit_mode)
+                or self._html_input_with_value(inlines=inlines,
+                                               edit_mode=edit_mode,
+                                               hidden_fields=hidden_fields)
             content = content + html_help
         else:
             content = ''
+
         return self.html_wrapper.format(
-            edit_checkbox=edit_checkbox,
+            edit_checkbox=self.get_edit_checkbox_input(edit_mode, hidden_fields),
             name=self.prefixed_name,
             content=content)
 
     def _render_subelements_html(self, inlines=None, edit_mode=False, hidden_fields=None):
-        elements = [el.render_html(inlines=inlines, edit_mode=edit_mode, hidden_fields=hidden_fields)
+        elements = [el.render_html(inlines=inlines,
+                                   edit_mode=edit_mode,
+                                   hidden_fields=hidden_fields)
                     for el in self.subelements]
         content = ''.join([el for el in elements if el])
         name = self.name
@@ -142,7 +161,7 @@ class Element(object):
                 content=content)
         return content
 
-    def _html_input_with_value(self, inlines=None, edit_mode=False):
+    def _html_input_with_value(self, inlines=None, edit_mode=False, hidden_fields=None):
         name = self.prefixed_name
         if inlines is not None:
             name = '{}_#0'.format(name)
@@ -155,9 +174,8 @@ class Element(object):
             )
             value = self.initial_data.get(self.name) or ''
             checked = ' checked' if self.is_checkbox and value else ''
-            edit_checkbox = edit_mode and self.html_edit_checkbox.format(name=self.prefixed_name) or ''
             html_input = self.html_input.format(
-                edit_checkbox=edit_checkbox,
+                edit_checkbox=self.get_edit_checkbox_input(edit_mode, hidden_fields),
                 disabled=edit_mode and ' disabled' or '',
                 name=name,
                 value=value,
