@@ -59,21 +59,29 @@ class Generator(object):
     PRIMITIVE_TYPES_PATH = 'IRS/primitive_types.xsd'
     UNBOUNDED = 999
 
-    default_html_label = '<label for="{name}">{label_text}</label>'
-    default_html_help = '<span for="{name}" class="help-text">{help_text}</span>'
-    default_html_input = '<input id="{name}" name="{name}" value="{value}"{disabled}/>'
-    default_html_wrapper =\
-        '''<div data-element={name}>
-               {content}
-               <span class="error"></span>
-           </div>'''
-    default_html_parent_element_wrapper =\
-        '''<div style="border: 1px solid black;">
-               <h4>{parent_label}</h4>
-               <div data-parent={parent_name}>{content}</div>
-           </div>
+    default_html_label = '''
+        <label for="{name}">{label_text}</label>
+    '''
+    default_html_help = '''
+        <span for="{name}" class="help-text">{help_text}</span>
+    '''
+    default_html_input = '''
+        <input id="{name}" name="{name}" value="{value}"{disabled}/>
+    '''
+    default_html_wrapper = '''
+        <div data-element={name}>
+            {content}
+            <span class="error"></span>
+        </div>'''
+    default_html_parent_element_wrapper = '''
+        <div style="border: 1px solid black;">
+            <h4>{parent_label}</h4>
+            <div data-parent={parent_name}>{content}</div>
+        </div>
         '''
-    default_html_required = '<span class="required">*</span>'
+    default_html_required = '''
+        <span class="required">*</span>
+    '''
 
     default_html_checkbox = '''
         <input type="checkbox" name="{{name}}" id="{{name}}" value="{value}"{{disabled}} {{checked}}/>
@@ -123,6 +131,10 @@ class Generator(object):
             'html_parent_element_wrapper': html_parent_element_wrapper,
         }
 
+    def create_element(self, *args, **kwargs):
+        all_kwargs_dict = dict(self.element_kwargs, **kwargs)
+        return self.element_class(*args, **all_kwargs_dict)
+
     def run(self, xsd_filepath):
         self.filepath = xsd_filepath
         tree = etree.parse(xsd_filepath, parser=etree.XMLParser(
@@ -157,7 +169,7 @@ class Generator(object):
         return None
 
     def parse_schema(self, node, el):
-        schema = self.element_class('schema', **self.element_kwargs)
+        schema = self.create_element('schema')
         self._process_subnodes(node, schema,
                                skip=['simpleType', 'complexType'])
         return schema
@@ -186,7 +198,7 @@ class Generator(object):
     def parse_choice(self, node, parent_el):
 		choice_name = ':choice_{}:'.format(self.choice_counter)
         self.choice_counter += 1
-        choice_element = self.element_class(choice_name, **self.element_kwargs)
+        choice_element = self.create_element(choice_name)
         parent_el.add_subelement(choice_element)
 
         min_occurs = int(node.attrib.get('minOccurs', 1))
@@ -295,7 +307,7 @@ class Generator(object):
         ref = node.attrib.get('ref', None)
         new_el = None
         if name:
-            new_el = self.element_class(name, **self.element_kwargs)
+            new_el = self.create_element(name)
             self.elements_cache[name] = new_el
         elif ref:
             cached_el = self.elements_cache.get(ref, None)
