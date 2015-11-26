@@ -10,6 +10,10 @@ class Element(object):
     ValueRequiredError = ValueRequiredError
 
     nesting_connector = '__'
+    error_messages = {
+        'required': 'This field is required',
+    }
+
     default_html_label = '<label for="{name}">{label_text}</label>'
     default_html_help = '<span for="{name}" class="help-text">{help_text}</span>'  # NOQA
     default_html_input = '<input id="{name}" name="{name}" value="{value}"{disabled}/>'
@@ -20,16 +24,13 @@ class Element(object):
                {content}
                <span class="error"></span>
            </div>'''
-    default_parent_element_wrapper =\
+    default_html_parent_element_wrapper =\
         '''<div style="border: 1px solid black;">
                <h4>{parent_label}</h4>
                <div data-parent={parent_name}>{content}</div>
            </div>
         '''
-    html_required = '<span class="required">*</span>'
-    error_messages = {
-        'required': 'This field is required',
-    }
+    default_html_required = '<span class="required">*</span>'
 
     def __init__(self, name, initial_data=None,
                  label_text='',
@@ -42,9 +43,10 @@ class Element(object):
                  html_label=default_html_label,
                  html_input=default_html_input,
                  html_wrapper=default_html_wrapper,
-                 html_parent_element_wrapper=default_parent_element_wrapper,
+                 html_parent_element_wrapper=default_html_parent_element_wrapper,
                  html_help=default_html_help,
-                 html_edit_checkbox=default_html_edit_checkbox,
+                 html_required=default_html_required,
+				 html_edit_checkbox=default_html_edit_checkbox,
                  **kwargs):
         self.name = name
         self.initial_data = initial_data or {}
@@ -56,12 +58,18 @@ class Element(object):
         self.validators = validators or []
         self.processors = processors or []
 
-        self.html_label = html_label
+        # redefining default html templates
         self.html_input = html_input
+
+        self.html_label = html_label
+        self.html_help = html_help
+        self.html_required = html_required
+
         self.html_wrapper = html_wrapper
         self.html_parent_element_wrapper = html_parent_element_wrapper
         self.html_help = html_help
         self.html_edit_checkbox = html_edit_checkbox
+		# end
 
         self.kwargs = kwargs
 
