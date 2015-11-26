@@ -65,11 +65,18 @@ class Generator(object):
         <label for="{name}" class="{required}">{label_text}</label>
     '''
     default_html_help = '''
-        <span for="{name}" class="help-text">{help_text}</span>
+        <p for="{name}" class="help">{help_text}</p>
     '''
 
+    default_html_input_wrapper = '''
+        <div class="fieldset">
+            {edit_checkbox}
+            {content}
+            <span class="error"></span>
+        </div>
+    '''
     default_html_input = '''
-        <input id="{name}" name="{name}" value="{value}"{disabled}/>
+        <input type="text" id="{name}" name="{name}" value="{value}"{disabled}/>
     '''
     default_html_checkbox = '''
         <input type="checkbox" name="{{name}}" id="{{name}}" value="{value}"{{disabled}} {{checked}}/>
@@ -84,31 +91,45 @@ class Generator(object):
         <label for="ch_hide_{name}">Hide</label><input id="ch_hide_{name}" name="ch_hide_{name}" type="checkbox" {checked}/>
     '''  # NOQA
 
-    default_html_wrapper = '''
-        <div data-element={name}>
-            {edit_checkbox}
-            {content}
-            <span class="error"></span>
-        </div>'''
+    default_html_element_wrapper = '''
+        <div class="grid-stack-item">
+            <div class="grid-stack-item-content" data-element={name}>
+                { content }
+            </div>
+        </div>
+    '''
+    default_html_sequence_wrapper = '''
+        <div class="grid-stack-item">
+            <div class="grid-stack-item-content" data-element={name}>
+                <div class="grid-stack">
+                    <h4>{parent_label}</h4>
+                    <div data-parent={parent_name}>{content}</div>
+                </div>
+                <span class="error"></span>
+            </div>
+        </div>
+    '''
     default_html_parent_element_wrapper = '''
-        <div style="border: 1px solid black;">
+        <div class="grid-stack">
             <h4>{parent_label}</h4>
             <div data-parent={parent_name}>{content}</div>
         </div>
-        '''
+    '''
 
     def __init__(self, element_class=Element,
                  primitive_types_path=PRIMITIVE_TYPES_PATH,
 
                  html_label=default_html_label,
                  html_help=default_html_help,
+                 html_input_wrapper=default_html_input_wrapper,
 
                  html_input=default_html_input,
                  html_checkbox=default_html_checkbox,
                  html_select=default_html_select,
                  html_option=default_html_option,
 
-                 html_wrapper=default_html_wrapper,
+                 html_element_wrapper=default_html_element_wrapper,
+                 html_sequence_wrapper=default_html_sequence_wrapper,
                  html_parent_element_wrapper=default_html_parent_element_wrapper,
 
                  html_edit_checkbox=default_html_edit_checkbox,
@@ -133,7 +154,7 @@ class Generator(object):
             'html_label': html_label,
             'html_help': html_help,
             'html_input': html_input,
-            'html_wrapper': html_wrapper,
+            'html_element_wrapper': html_element_wrapper,
             'html_parent_element_wrapper': html_parent_element_wrapper,
             'html_edit_checkbox': html_edit_checkbox,
         }
@@ -223,7 +244,7 @@ class Generator(object):
         choice_element.label_text = label.format(min=choice_element.min_occurs,
                                                  max=choice_element.max_occurs)
         choice_element.html_parent_element_wrapper =\
-            '''<div style="border: 1px solid black;" class="choice-wrapper" data-min={min} data-max={max}>
+            '''<div class="grid-stack choice-wrapper" data-min="{min}" data-max="{max}">
                    <h4>{{parent_label}}</h4>
                    <div data-parent={{parent_name}}>{{content}}</div>
                </div>

@@ -25,9 +25,10 @@ class Element(object):
                  parent=None,
                  validators=None,
                  processors=None,
-                 html_label=None, html_input=None, html_wrapper=None,
+                 html_label=None, html_input=None,
+                 html_element_wrapper=None, html_sequence_wrapper=None,
                  html_parent_element_wrapper=None, html_help=None,
-                 html_edit_checkbox=None,
+                 html_edit_checkbox=None, html_input_wrapper=None,
                  **kwargs):
         self.name = name
         self.initial_data = initial_data or {}
@@ -41,11 +42,13 @@ class Element(object):
 
         # redefining default html templates
         self.html_input = html_input
+        self.html_input_wrapper = html_input_wrapper
 
         self.html_label = html_label
         self.html_help = html_help
 
-        self.html_wrapper = html_wrapper
+        self.html_element_wrapper = html_element_wrapper
+        self.html_sequence_wrapper = html_sequence_wrapper
         self.html_parent_element_wrapper = html_parent_element_wrapper
         self.html_help = html_help
         self.html_edit_checkbox = html_edit_checkbox
@@ -124,12 +127,9 @@ class Element(object):
                 or self._html_input_with_value(inlines=inlines,
                                                edit_mode=edit_mode,
                                                hidden_fields=hidden_fields)
-            html_help = self.html_help.format(
-                name=prefixed_name,
-                help_text=self.help_text or '')
-            content = content + html_help
+        return content
 
-        return self.html_wrapper.format(
+        return self.html_element_wrapper.format(
             edit_checkbox=self.get_edit_checkbox_input(edit_mode, hidden_fields),
             name=prefixed_name,
             content=content)
@@ -165,8 +165,10 @@ class Element(object):
             html_label = self.html_label.format(
                 name=name,
                 label_text=self.label_text or name,
-                required=self.required(),
-            )
+                required=self.required(),)
+            html_help = self.html_help.format(
+                name=name,
+                help_text=self.help_text or '',)
             value = self.initial_data.get(self.name) or ''
             checked = ' checked' if self.is_checkbox and value else ''
             html_input = self.html_input.format(
@@ -174,9 +176,9 @@ class Element(object):
                 disabled=edit_mode and ' disabled' or '',
                 name=name,
                 value=value,
-                checked=checked,
-            )
-            return html_label + html_input
+                checked=checked,)
+            return self.html_input_wrapper.format(
+                content=(html_label + html_help + html_input))
         return ''
 
     @property
