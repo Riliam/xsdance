@@ -14,24 +14,6 @@ class Element(object):
         'required': 'This field is required',
     }
 
-    default_html_label = '<label for="{name}">{label_text}</label>'
-    default_html_help = '<span for="{name}" class="help-text">{help_text}</span>'  # NOQA
-    default_html_input = '<input id="{name}" name="{name}" value="{value}"{disabled}/>'
-    default_html_edit_checkbox = '<label for="ch_hide_{name}">Hide</label><input id="ch_hide_{name}" name="ch_hide_{name}" type="checkbox" {checked}/>'  # noqa
-    default_html_wrapper =\
-        '''<div data-element={name}>
-            {edit_checkbox}
-               {content}
-               <span class="error"></span>
-           </div>'''
-    default_html_parent_element_wrapper =\
-        '''<div style="border: 1px solid black;">
-               <h4>{parent_label}</h4>
-               <div data-parent={parent_name}>{content}</div>
-           </div>
-        '''
-    default_html_required = '<span class="required">*</span>'
-
     def __init__(self, name, initial_data=None,
                  label_text='',
                  help_text='',
@@ -40,13 +22,9 @@ class Element(object):
                  parent=None,
                  validators=None,
                  processors=None,
-                 html_label=default_html_label,
-                 html_input=default_html_input,
-                 html_wrapper=default_html_wrapper,
-                 html_parent_element_wrapper=default_html_parent_element_wrapper,
-                 html_help=default_html_help,
-                 html_required=default_html_required,
-				 html_edit_checkbox=default_html_edit_checkbox,
+                 html_label=None, html_input=None, html_wrapper=None,
+                 html_parent_element_wrapper=None, html_help=None,
+                 html_required=None, html_edit_checkbox=None,
                  **kwargs):
         self.name = name
         self.initial_data = initial_data or {}
@@ -69,7 +47,7 @@ class Element(object):
         self.html_parent_element_wrapper = html_parent_element_wrapper
         self.html_help = html_help
         self.html_edit_checkbox = html_edit_checkbox
-		# end
+        # end
 
         self.kwargs = kwargs
 
@@ -173,7 +151,6 @@ class Element(object):
         name = self.prefixed_name
         if inlines is not None:
             name = '{}_#0'.format(name)
-            print(name)
 
         if self.html_input:
             html_label = self.html_label.format(

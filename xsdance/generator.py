@@ -1,7 +1,6 @@
 import copy
 import os
 
-import uuid
 from lxml import etree
 
 from element import Element
@@ -70,6 +69,7 @@ class Generator(object):
     '''
     default_html_wrapper = '''
         <div data-element={name}>
+            {edit_checkbox}
             {content}
             <span class="error"></span>
         </div>'''
@@ -92,6 +92,9 @@ class Generator(object):
         </select>
     '''
     default_html_option = '<option value="{value}">{text}</option>'
+    default_html_edit_checkbox = '''
+        <label for="ch_hide_{name}">Hide</label><input id="ch_hide_{name}" name="ch_hide_{name}" type="checkbox" {checked}/>
+    '''  # NOQA
 
     def __init__(self, element_class=Element,
 
@@ -106,6 +109,8 @@ class Generator(object):
 
                  html_wrapper=default_html_wrapper,
                  html_parent_element_wrapper=default_html_parent_element_wrapper,
+
+                 html_edit_checkbox=default_html_edit_checkbox,
                  ):
 
         self.element_class = element_class
@@ -129,6 +134,7 @@ class Generator(object):
             'html_input': html_input,
             'html_wrapper': html_wrapper,
             'html_parent_element_wrapper': html_parent_element_wrapper,
+            'html_edit_checkbox': html_edit_checkbox,
         }
 
     def create_element(self, *args, **kwargs):
@@ -196,7 +202,7 @@ class Generator(object):
         self._process_subnodes(node, new_el)
 
     def parse_choice(self, node, parent_el):
-		choice_name = ':choice_{}:'.format(self.choice_counter)
+        choice_name = ':choice_{}:'.format(self.choice_counter)
         self.choice_counter += 1
         choice_element = self.create_element(choice_name)
         parent_el.add_subelement(choice_element)
