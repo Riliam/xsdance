@@ -1,10 +1,13 @@
+# -*- coding: utf-8 -*-
+from __future__ import unicode_literals, print_function, division, absolute_import  # NOQA
+
 import copy
 import os
 
 from lxml import etree
 
-from element import Element
-from utils import Validator
+from .element import Element
+from .utils import Validator
 
 _ = lambda x: x
 
@@ -64,25 +67,13 @@ class Generator(object):
     default_html_help = '''
         <span for="{name}" class="help-text">{help_text}</span>
     '''
-    default_html_input = '''
-        <input id="{name}" name="{name}" value="{value}"{disabled}/>
-    '''
-    default_html_wrapper = '''
-        <div data-element={name}>
-            {edit_checkbox}
-            {content}
-            <span class="error"></span>
-        </div>'''
-    default_html_parent_element_wrapper = '''
-        <div style="border: 1px solid black;">
-            <h4>{parent_label}</h4>
-            <div data-parent={parent_name}>{content}</div>
-        </div>
-        '''
     default_html_required = '''
         <span class="required">*</span>
     '''
 
+    default_html_input = '''
+        <input id="{name}" name="{name}" value="{value}"{disabled}/>
+    '''
     default_html_checkbox = '''
         <input type="checkbox" name="{{name}}" id="{{name}}" value="{value}"{{disabled}} {{checked}}/>
     '''
@@ -96,7 +87,21 @@ class Generator(object):
         <label for="ch_hide_{name}">Hide</label><input id="ch_hide_{name}" name="ch_hide_{name}" type="checkbox" {checked}/>
     '''  # NOQA
 
+    default_html_wrapper = '''
+        <div data-element={name}>
+            {edit_checkbox}
+            {content}
+            <span class="error"></span>
+        </div>'''
+    default_html_parent_element_wrapper = '''
+        <div style="border: 1px solid black;">
+            <h4>{parent_label}</h4>
+            <div data-parent={parent_name}>{content}</div>
+        </div>
+        '''
+
     def __init__(self, element_class=Element,
+                 primitive_types_path=PRIMITIVE_TYPES_PATH,
 
                  html_label=default_html_label,
                  html_required=default_html_required,
@@ -114,6 +119,7 @@ class Generator(object):
                  ):
 
         self.element_class = element_class
+        self.primitive_types_path = primitive_types_path
 
         self.html_checkbox = html_checkbox
         self.html_select = html_select
@@ -159,7 +165,7 @@ class Generator(object):
         self.nsmap.pop(None)
         # STOP weird magic
 
-        primitive_types = etree.parse(self.PRIMITIVE_TYPES_PATH)
+        primitive_types = etree.parse(self.primitive_types_path)
         primitive_types_root = primitive_types.getroot()
         self.includes.append(primitive_types_root)
         assert self.nsmap['xsd'] == primitive_types_root.nsmap['xsd']
