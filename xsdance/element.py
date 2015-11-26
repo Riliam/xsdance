@@ -27,7 +27,7 @@ class Element(object):
                  processors=None,
                  html_label=None, html_input=None, html_wrapper=None,
                  html_parent_element_wrapper=None, html_help=None,
-                 html_required=None, html_edit_checkbox=None,
+                 html_edit_checkbox=None,
                  **kwargs):
         self.name = name
         self.initial_data = initial_data or {}
@@ -44,7 +44,6 @@ class Element(object):
 
         self.html_label = html_label
         self.html_help = html_help
-        self.html_required = html_required
 
         self.html_wrapper = html_wrapper
         self.html_parent_element_wrapper = html_parent_element_wrapper
@@ -80,12 +79,11 @@ class Element(object):
     def initial_value(self):
         return self.initial_data[self.name]
 
-    @property
-    def prefixed_name(self):
+    def prefixed_name(self, inlines=None):
         name = self.name
         if self.parent:
             name = '{prefix}{connector}{name}'.format(
-                prefix=self._get_full_prefix(),
+                prefix=self._get_full_prefix(inlines=inlines),
                 connector=self.nesting_connector,
                 name=name)
         return name
@@ -94,12 +92,12 @@ class Element(object):
         edit_checkbox = ''
         if edit_mode:
             edit_checkbox = self.html_edit_checkbox.format(
-                name=self.prefixed_name,
+                name=self.prefixed_name(),
                 checked='',
             )
             if self.prefixed_name in hidden_fields:
                 edit_checkbox = self.html_edit_checkbox.format(
-                    name=self.prefixed_name,
+                    name=self.prefixed_name(),
                     checked='checked',
                 )
         return edit_checkbox
@@ -107,41 +105,46 @@ class Element(object):
     def render_html(self, inlines=None, edit_mode=False, hidden_fields=None):
 
         hidden_fields = hidden_fields or []
-        if not edit_mode and self.prefixed_name in hidden_fields:
+        if not edit_mode and self.prefixed_name() in hidden_fields:
             return None
 
-        html_help = self.html_help.format(
-            name=self.prefixed_name,
-            help_text=self.help_text or '')
-        html_subelements = self._render_subelements_html(
-            inlines=self.min_occurs if self.max_occurs > 1 else None,
-            edit_mode=edit_mode,
-            hidden_fields=hidden_fields,
-        )
+        prefixed_name = self.prefixed_name()
 
+        inlines = None
+        if self.max_occurs > 1:
+            inlines = ((inlines or []) + [(self.name, self.min_occurs)])
+
+        html_subelements = self._render_subelements_html(
+            inlines=inlines,
+            edit_mode=edit_mode,
+            hidden_fields=hidden_fields,)
+        content = ''
         if html_subelements is not None:
             content = html_subelements \
                 or self._html_input_with_value(inlines=inlines,
                                                edit_mode=edit_mode,
                                                hidden_fields=hidden_fields)
+            html_help = self.html_help.format(
+                name=prefixed_name,
+                help_text=self.help_text or '')
             content = content + html_help
-        else:
-            content = ''
 
         return self.html_wrapper.format(
             edit_checkbox=self.get_edit_checkbox_input(edit_mode, hidden_fields),
-            name=self.prefixed_name,
+            name=prefixed_name,
             content=content)
 
     def _render_subelements_html(self, inlines=None, edit_mode=False, hidden_fields=None):
+        name = self.name
+
+        if inlines is not None:
+            name = '{}_#0'.format(name)
+
         elements = [el.render_html(inlines=inlines,
                                    edit_mode=edit_mode,
                                    hidden_fields=hidden_fields)
                     for el in self.subelements]
         content = ''.join([el for el in elements if el])
-        name = self.name
-        if inlines is not None:
-            name = '{}_#0'.format(name)
 
         if content:
             content = self.html_parent_element_wrapper.format(
@@ -150,15 +153,19 @@ class Element(object):
                 content=content)
         return content
 
-    def _html_input_with_value(self, inlines=None, edit_mode=False, hidden_fields=None):
-        name = self.prefixed_name
-        if inlines is not None:
-            name = '{}_#0'.format(name)
+    def _html_input_with_value(
+            self,
+            inlines=None,
+            edit_mode=False,
+            hidden_fields=None):
+
+        name = self.prefixed_name(inlines=inlines)
 
         if self.html_input:
             html_label = self.html_label.format(
                 name=name,
                 label_text=self.label_text or name,
+                required=self.required(),
             )
             value = self.initial_data.get(self.name) or ''
             checked = ' checked' if self.is_checkbox and value else ''
@@ -169,7 +176,7 @@ class Element(object):
                 value=value,
                 checked=checked,
             )
-            return html_label + self.required() + html_input
+            return html_label + html_input
         return ''
 
     @property
@@ -192,7 +199,7 @@ class Element(object):
         for sub in self.subelements:
             v = sub.process_value(value.get(sub.name, None))
             if v is None and sub.min_occurs > 0:
-                errors[sub.prefixed_name] = [self.error_messages['required']]
+                errors[sub.prefixed_name()] = [self.error_messages['required']]
             else:
                 suberrors = sub.validate(value)
                 if suberrors:
@@ -204,8 +211,8 @@ class Element(object):
         for validator in self.validators:
             result = validator(processed)
             if result:
-                errors[self.prefixed_name] =\
-                    errors.get(self.prefixed_name, []) + [result]
+                errors[self.prefixed_name()] =\
+                    errors.get(self.prefixed_name(), []) + [result]
 
         self.errors = errors
         return self.errors
@@ -232,11 +239,16 @@ class Element(object):
     def add_kwargs(self, **kwargs):
         self.kwargs.update(**kwargs)
 
-    def _get_full_prefix(self):
+    def _get_full_prefix(self, inlines=None):
+        inlines_suffix = '_#{{{name}:0}}'
+        inlines = inlines or []
         parents = []
         el = self
         while getattr(el, 'parent'):
-            parents.append(el.parent.name)
+            name = el.parent.name
+            if name in inlines:
+                name = name + inlines_suffix.format(name)
+            parents.append(name)
             el = el.parent
         return self.nesting_connector.join(reversed(parents))
 
@@ -254,10 +266,7 @@ class Element(object):
         return data
 
     def required(self):
-        required = ''
-        if 'choice' not in self.parent.name:
-            required = self.html_required if self.min_occurs > 0 else ''
-        return required
+        return 'required' if 'choice' not in self.parent.name else ''
 
     def set_initial_data(self, data):
         self.initial_data = data
