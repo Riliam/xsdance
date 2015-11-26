@@ -1,4 +1,7 @@
-from utils import serialize_xml, serialize_json
+# -*- coding: utf-8 -*-
+from __future__ import unicode_literals, print_function, division, absolute_import  # NOQA
+
+from .utils import serialize_xml, serialize_json
 
 
 class ValueRequiredError(BaseException):
@@ -262,3 +265,8 @@ class Element(object):
             for el in self.subelements:
                 el.set_initial_data(data.get(self.name))
         return self
+
+    def _print_tree(self, level=0):
+        print(level * '--', self.name)
+        for el in self.subelements:
+            el.print_tree(level+1)
