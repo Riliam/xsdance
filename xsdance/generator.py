@@ -62,13 +62,10 @@ class Generator(object):
     UNBOUNDED = 999
 
     default_html_label = '''
-        <label for="{name}">{label_text}</label>
+        <label for="{name}" class="{required}">{label_text}</label>
     '''
     default_html_help = '''
         <span for="{name}" class="help-text">{help_text}</span>
-    '''
-    default_html_required = '''
-        <span class="required">*</span>
     '''
 
     default_html_input = '''
@@ -104,7 +101,6 @@ class Generator(object):
                  primitive_types_path=PRIMITIVE_TYPES_PATH,
 
                  html_label=default_html_label,
-                 html_required=default_html_required,
                  html_help=default_html_help,
 
                  html_input=default_html_input,
@@ -135,7 +131,6 @@ class Generator(object):
 
         self.element_kwargs = {
             'html_label': html_label,
-            'html_required': html_required,
             'html_help': html_help,
             'html_input': html_input,
             'html_wrapper': html_wrapper,
