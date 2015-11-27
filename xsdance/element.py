@@ -23,7 +23,7 @@ class Element(object):
         'data-gs-width': "4",
         'data-gs-height': "2",
     }
-    inlines_suffix_t = '_#{{{name}:0}}'
+    inlines_suffix_t = '_#{{{name}:{index}}}'
     inlines_emtpy_suffix_t = '_#{{{name}}}'
 
     def __init__(self, name, initial_data=None,
@@ -38,8 +38,10 @@ class Element(object):
                  html_label=None, html_input=None, html_wrapper=None,
                  html_parent_element_wrapper=None, html_input_wrapper=None,
                  html_help=None, html_edit_checkbox=None,
+                 html_inline_button_add=None, html_inline_button_remove=None,
 
                  **kwargs):
+
         self.name = name
         self.initial_data = initial_data or {}
         self.label_text = label_text
@@ -61,6 +63,8 @@ class Element(object):
         self.html_parent_element_wrapper = html_parent_element_wrapper
         self.html_help = html_help
         self.html_edit_checkbox = html_edit_checkbox
+        self.html_inline_button_add = html_inline_button_add
+        self.html_inline_button_remove = html_inline_button_remove
         # end
 
         self.kwargs = kwargs
@@ -116,13 +120,21 @@ class Element(object):
             gridster_settings=self.get_gridster_settings_attrs(),
             edit_checkbox=self.get_edit_checkbox_input(edit_mode, hidden_fields),
             name=prefixed_name,
-            content=content)
+            content=content,
+            inline_buttons=self.get_inline_buttons())
 
-        empty = ''
-        if self.max_occurs > 1:
-            empty = result.replace(self._get_name_with_inline_suffix(),
-                                   self._get_name_with_inline_suffix(empty=True))
-        return result + empty
+        # inlines additional forms appends here, including additional forms if
+        # min_occurs > 1 and empty form for forms multiplying at frontend
+        inlines = ''
+        inlines_count = self.inlines_needed()
+        if inlines_count:
+            for i in range(1, inlines_count):
+                inlines += result.replace(self._get_name_with_inline_suffix(),
+                                          self._get_name_with_inline_suffix(index=i))
+            inlines += result.replace(self._get_name_with_inline_suffix(),
+                                      self._get_name_with_inline_suffix(empty=True))
+
+        return result + inlines
 
     def _render_subelements_html(self, edit_mode=False, hidden_fields=None):
         name = self.name
@@ -169,6 +181,8 @@ class Element(object):
 
     def prefixed_name(self):
         name = self.name
+        if self.inlines_needed():
+            name = self._get_name_with_inline_suffix()
         if self.parent:
             name = '{prefix}{connector}{name}'.format(
                 prefix=self._get_full_prefix(),
@@ -182,15 +196,24 @@ class Element(object):
         # el.parent should evaluate to True, if exists
         while getattr(el, 'parent', None):
             name = el.parent.name
-            if el.parent.max_occurs > 1:
+            if el.parent.inlines_needed():
                 name = el.parent._get_name_with_inline_suffix()
             parents.append(name)
             el = el.parent
         return self.nesting_connector.join(reversed(parents))
 
-    def _get_name_with_inline_suffix(self, empty=False):
+    def _get_name_with_inline_suffix(self, empty=False, index=0):
         templ = self.inlines_emtpy_suffix_t if empty else self.inlines_suffix_t
-        return self.name + templ.format(name=self.name)
+        return self.name + templ.format(name=self.name, index=index)
+
+    def inlines_needed(self):
+        return (self.min_occurs or 1) if self.max_occurs > 1 else None
+
+    def get_inline_buttons(self):
+        result = ''
+        if self.inlines_needed():
+            result = (self.html_inline_button_remove + self.html_inline_button_add).format(name=self.name)
+        return result
 
     def get_edit_checkbox_input(self, edit_mode, hidden_fields):
         edit_checkbox = ''

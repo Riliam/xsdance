@@ -90,6 +90,7 @@ class Generator(object):
             <div class="grid-stack-item-content" data-element-name="{name}">
                 {edit_checkbox}
                 {content}
+                {inline_buttons}
             </div>
         </div>
     '''
@@ -107,6 +108,13 @@ class Generator(object):
         </div>
     '''
 
+    default_html_inline_button_add = '''
+        <a class="btn btn-default btn-add" data-element="{name}><i class="icon-add"></i><span>Add</span></a>
+    '''
+    default_html_inline_button_remove = '''
+        <a class="btn btn-default btn-remove" data-element="{name}><i class="icon-delete"></i><span>Remove</span></a>
+    '''
+
     def __init__(self, element_class=Element,
                  primitive_types_path=PRIMITIVE_TYPES_PATH,
 
@@ -117,6 +125,8 @@ class Generator(object):
                  html_checkbox=default_html_checkbox,
                  html_select=default_html_select,
                  html_option=default_html_option,
+                 html_inline_button_add=default_html_inline_button_add,
+                 html_inline_button_remove=default_html_inline_button_remove,
 
                  html_wrapper=default_html_wrapper,
                  html_parent_element_wrapper=default_html_parent_element_wrapper,
@@ -148,6 +158,8 @@ class Generator(object):
             'html_parent_element_wrapper': html_parent_element_wrapper,
             'html_edit_checkbox': html_edit_checkbox,
             'html_input_wrapper': html_input_wrapper,
+            'html_inline_button_add': html_inline_button_add,
+            'html_inline_button_remove': html_inline_button_remove,
         }
 
     def create_element(self, *args, **kwargs):
