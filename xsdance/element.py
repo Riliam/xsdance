@@ -25,9 +25,11 @@ class Element(object):
                  parent=None,
                  validators=None,
                  processors=None,
+
                  html_label=None, html_input=None, html_wrapper=None,
-                 html_parent_element_wrapper=None, html_help=None,
-                 html_edit_checkbox=None,
+                 html_parent_element_wrapper=None, html_input_wrapper=None,
+                 html_help=None, html_edit_checkbox=None,
+
                  **kwargs):
         self.name = name
         self.initial_data = initial_data or {}
@@ -46,6 +48,7 @@ class Element(object):
         self.html_help = html_help
 
         self.html_wrapper = html_wrapper
+        self.html_input_wrapper = html_input_wrapper
         self.html_parent_element_wrapper = html_parent_element_wrapper
         self.html_help = html_help
         self.html_edit_checkbox = html_edit_checkbox
@@ -161,6 +164,7 @@ class Element(object):
 
         name = self.prefixed_name(inlines=inlines)
 
+        result = ''
         if self.html_input:
             html_label = self.html_label.format(
                 name=name,
@@ -176,8 +180,12 @@ class Element(object):
                 value=value,
                 checked=checked,
             )
-            return html_label + html_input
-        return ''
+            result = self.html_input_wrapper.format(
+                label=html_label,
+                html_input=html_input,
+                help_text=self.help_text or '',
+            )
+        return result
 
     @property
     def is_checkbox(self):

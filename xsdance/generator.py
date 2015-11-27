@@ -75,7 +75,7 @@ class Generator(object):
         <input type="checkbox" name="{{name}}" id="{{name}}" value="{value}"{{disabled}} {{checked}}/>
     '''
     default_html_select = '''
-        <select {multiple} name="{{name}}"{{disabled}}>
+        <select {multiple} name="{{name}}"{{disabled}} data-placeholder="Select">
             {options}
         </select>
     '''
@@ -85,17 +85,26 @@ class Generator(object):
     '''  # NOQA
 
     default_html_wrapper = '''
-        <div data-element={name}>
-            {edit_checkbox}
-            {content}
-            <span class="error"></span>
-        </div>'''
-    default_html_parent_element_wrapper = '''
-        <div style="border: 1px solid black;">
-            <h4>{parent_label}</h4>
-            <div data-parent={parent_name}>{content}</div>
+        <div class="grid-stack-item">
+            <div class="grid-stack-item-content" data-element-name="{name}">
+                {edit_checkbox}
+                {content}
+            </div>
         </div>
-        '''
+    '''
+    default_html_parent_element_wrapper = '''
+        <div class="admin-irs-grid grid-stack">
+            {content}
+        </div>
+    '''
+    default_html_input_wrapper = '''
+        <div class="fieldset">
+            {label}
+            <p class="help"> {help_text} </p>
+            {html_input}
+            <div class="error" id="name"></div>
+        </div>
+    '''
 
     def __init__(self, element_class=Element,
                  primitive_types_path=PRIMITIVE_TYPES_PATH,
@@ -110,6 +119,7 @@ class Generator(object):
 
                  html_wrapper=default_html_wrapper,
                  html_parent_element_wrapper=default_html_parent_element_wrapper,
+                 html_input_wrapper=default_html_input_wrapper,
 
                  html_edit_checkbox=default_html_edit_checkbox,
                  ):
@@ -136,6 +146,7 @@ class Generator(object):
             'html_wrapper': html_wrapper,
             'html_parent_element_wrapper': html_parent_element_wrapper,
             'html_edit_checkbox': html_edit_checkbox,
+            'html_input_wrapper': html_input_wrapper,
         }
 
     def create_element(self, *args, **kwargs):
@@ -222,13 +233,18 @@ class Generator(object):
             label = _('Fill {min} to {max} of the following boxes')
         choice_element.label_text = label.format(min=choice_element.min_occurs,
                                                  max=choice_element.max_occurs)
-        choice_element.html_parent_element_wrapper =\
-            '''<div style="border: 1px solid black;" class="choice-wrapper" data-min={min} data-max={max}>
-                   <h4>{{parent_label}}</h4>
-                   <div data-parent={{parent_name}}>{{content}}</div>
-               </div>
-            '''.format(min=choice_element.min_occurs,  # NOQA
-                             max=choice_element.max_occurs)
+        # choice_element.html_parent_element_wrapper =\
+        #     '''
+        #     <div class="admin-irs-grid grid-stack" data-min={min} data-max={max} data-parent="{{parent_name}}">
+        #         <h4>{{ parent_label }}</h4>
+        #         {{content}}
+        #     </div>
+        #     <div >
+        #            <h4>{{parent_label}}</h4>
+        #            <div data-parent={{parent_name}}>{{content}}</div>
+        #        </div>
+        #     '''.format(min=choice_element.min_occurs,
+        #                max=choice_element.max_occurs)
 
         self._process_subnodes(node, choice_element)
 
@@ -298,7 +314,7 @@ class Generator(object):
                 el.html_input = html_input
                 el.add_processor(CheckboxProcessor(value))
             else:
-                choices = [(None, '------')] + list(zip(enum_items, enum_items))
+                choices = list(zip(enum_items, enum_items))
                 options = [self.html_option.format(value=value, text=text)
                            for value, text in choices]
                 html_input = self.html_select.format(
