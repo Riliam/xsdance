@@ -23,6 +23,8 @@ class Element(object):
         'data-gs-width': "4",
         'data-gs-height': "2",
     }
+    inlines_suffix_t = '_#{{{name}:0}}'
+    inlines_emtpy_suffix_t = '_#{{{name}}}'
 
     def __init__(self, name, initial_data=None,
                  label_text='',
@@ -89,30 +91,7 @@ class Element(object):
     def initial_value(self):
         return self.initial_data[self.name]
 
-    def prefixed_name(self, inlines=None):
-        name = self.name
-        if self.parent:
-            name = '{prefix}{connector}{name}'.format(
-                prefix=self._get_full_prefix(inlines=inlines),
-                connector=self.nesting_connector,
-                name=name)
-        return name
-
-    def get_edit_checkbox_input(self, edit_mode, hidden_fields):
-        edit_checkbox = ''
-        if edit_mode:
-            edit_checkbox = self.html_edit_checkbox.format(
-                name=self.prefixed_name(),
-                checked='',
-            )
-            if self.prefixed_name in hidden_fields:
-                edit_checkbox = self.html_edit_checkbox.format(
-                    name=self.prefixed_name(),
-                    checked='checked',
-                )
-        return edit_checkbox
-
-    def render_html(self, inlines=None, edit_mode=False, hidden_fields=None):
+    def render_html(self, edit_mode=False, hidden_fields=None):
 
         hidden_fields = hidden_fields or []
         if not edit_mode and self.prefixed_name() in hidden_fields:
@@ -120,39 +99,35 @@ class Element(object):
 
         prefixed_name = self.prefixed_name()
 
-        inlines = None
-        if self.max_occurs > 1:
-            inlines = ((inlines or []) + [(self.name, self.min_occurs)])
-
         html_subelements = self._render_subelements_html(
-            inlines=inlines,
             edit_mode=edit_mode,
             hidden_fields=hidden_fields,)
         content = ''
         if html_subelements is not None:
             content = html_subelements \
-                or self._html_input_with_value(inlines=inlines,
-                                               edit_mode=edit_mode,
+                or self._html_input_with_value(edit_mode=edit_mode,
                                                hidden_fields=hidden_fields)
             html_help = self.html_help.format(
                 name=prefixed_name,
                 help_text=self.help_text or '')
             content = content + html_help
 
-        return self.html_wrapper.format(
+        result = self.html_wrapper.format(
             gridster_settings=self.get_gridster_settings_attrs(),
             edit_checkbox=self.get_edit_checkbox_input(edit_mode, hidden_fields),
             name=prefixed_name,
             content=content)
 
-    def _render_subelements_html(self, inlines=None, edit_mode=False, hidden_fields=None):
+        empty = ''
+        if self.max_occurs > 1:
+            empty = result.replace(self._get_name_with_inline_suffix(),
+                                   self._get_name_with_inline_suffix(empty=True))
+        return result + empty
+
+    def _render_subelements_html(self, edit_mode=False, hidden_fields=None):
         name = self.name
 
-        if inlines is not None:
-            name = '{}_#0'.format(name)
-
-        elements = [el.render_html(inlines=inlines,
-                                   edit_mode=edit_mode,
+        elements = [el.render_html(edit_mode=edit_mode,
                                    hidden_fields=hidden_fields)
                     for el in self.subelements]
         content = ''.join([el for el in elements if el])
@@ -164,13 +139,9 @@ class Element(object):
                 content=content)
         return content
 
-    def _html_input_with_value(
-            self,
-            inlines=None,
-            edit_mode=False,
-            hidden_fields=None):
+    def _html_input_with_value(self, edit_mode=False, hidden_fields=None):
 
-        name = self.prefixed_name(inlines=inlines)
+        name = self.prefixed_name()
 
         result = ''
         if self.html_input:
@@ -195,6 +166,45 @@ class Element(object):
                 name=name,
             )
         return result
+
+    def prefixed_name(self):
+        name = self.name
+        if self.parent:
+            name = '{prefix}{connector}{name}'.format(
+                prefix=self._get_full_prefix(),
+                connector=self.nesting_connector,
+                name=name)
+        return name
+
+    def _get_full_prefix(self):
+        parents = []
+        el = self
+        # el.parent should evaluate to True, if exists
+        while getattr(el, 'parent', None):
+            name = el.parent.name
+            if el.parent.max_occurs > 1:
+                name = el.parent._get_name_with_inline_suffix()
+            parents.append(name)
+            el = el.parent
+        return self.nesting_connector.join(reversed(parents))
+
+    def _get_name_with_inline_suffix(self, empty=False):
+        templ = self.inlines_emtpy_suffix_t if empty else self.inlines_suffix_t
+        return self.name + templ.format(name=self.name)
+
+    def get_edit_checkbox_input(self, edit_mode, hidden_fields):
+        edit_checkbox = ''
+        if edit_mode:
+            edit_checkbox = self.html_edit_checkbox.format(
+                name=self.prefixed_name(),
+                checked='',
+            )
+            if self.prefixed_name in hidden_fields:
+                edit_checkbox = self.html_edit_checkbox.format(
+                    name=self.prefixed_name(),
+                    checked='checked',
+                )
+        return edit_checkbox
 
     def get_gridster_settings_attrs(self):
         return ' '.join('='.join([k, '"{}"'.format(v)]) for k, v in self.gridster_default_settings.items())
@@ -264,19 +274,6 @@ class Element(object):
 
     def add_kwargs(self, **kwargs):
         self.kwargs.update(**kwargs)
-
-    def _get_full_prefix(self, inlines=None):
-        inlines_suffix = '_#{{{name}:0}}'
-        inlines = inlines or []
-        parents = []
-        el = self
-        while getattr(el, 'parent'):
-            name = el.parent.name
-            if name in inlines:
-                name = name + inlines_suffix.format(name)
-            parents.append(name)
-            el = el.parent
-        return self.nesting_connector.join(reversed(parents))
 
     def _get_cleaned_data(self, top=True):
         if self._cleaned_data:
