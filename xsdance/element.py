@@ -17,6 +17,13 @@ class Element(object):
         'required': 'This field is required',
     }
 
+    gridster_default_settings = {
+        'data-gs-y': "0",
+        'data-gs-х': "0",
+        'data-gs-width': "4",
+        'data-gs-height': "2",
+    }
+
     def __init__(self, name, initial_data=None,
                  label_text='',
                  help_text='',
@@ -133,6 +140,7 @@ class Element(object):
             content = content + html_help
 
         return self.html_wrapper.format(
+            gridster_settings=self.get_gridster_settings_attrs(),
             edit_checkbox=self.get_edit_checkbox_input(edit_mode, hidden_fields),
             name=prefixed_name,
             content=content)
@@ -183,8 +191,17 @@ class Element(object):
             result = self.html_input_wrapper.format(
                 label=html_label,
                 html_input=html_input,
-                help_text=self.help_text or '',
+                help_text=self.get_help_text_html(),
             )
+        return result
+
+    def get_gridster_settings_attrs(self):
+        return ' '.join('='.join([k, v]) for k, v in self.gridster_default_settings.items())
+
+    def get_help_text_html(self):
+        result = ''
+        if self.help_text:
+            result = '<p class="help"> {help_text} </p>'.format(help_text=self.help_text)
         return result
 
     @property
