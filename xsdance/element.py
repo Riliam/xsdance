@@ -192,6 +192,7 @@ class Element(object):
                 label=html_label,
                 html_input=html_input,
                 help_text=self.get_help_text_html(),
+                name=name,
             )
         return result
 

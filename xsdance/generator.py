@@ -103,7 +103,7 @@ class Generator(object):
             {label}
             {help_text}
             {html_input}
-            <div class="error" id="name"></div>
+            <div class="error" id="{name}"></div>
         </div>
     '''
 
@@ -154,8 +154,8 @@ class Generator(object):
         all_kwargs_dict = dict(self.element_kwargs, **kwargs)
 
         name = args[0]
-        parent = kwargs.get('parent', None)
-        if self.TOP_LEVEL_ELEMENT_NAME in (name, parent.name if parent else None):
+        parent_name = kwargs.get('parent_name', None)
+        if self.TOP_LEVEL_ELEMENT_NAME in (name, parent_name):
             all_kwargs_dict['html_wrapper'] = '''
                 {edit_checkbox}
                 {content}
@@ -211,7 +211,7 @@ class Generator(object):
         self.includes.append(include_root)
 
     def parse_element(self, node, parent_el):
-        new_el = self._get_element_from_cache_or_create(node)
+        new_el = self._get_element_from_cache_or_create(node, parent_el)
         parent_el.add_subelement(new_el)
 
         type_name = node.attrib.get('type', None)
@@ -228,7 +228,7 @@ class Generator(object):
     def parse_choice(self, node, parent_el):
         choice_name = ':choice_{}:'.format(self.choice_counter)
         self.choice_counter += 1
-        choice_element = self.create_element(choice_name)
+        choice_element = self.create_element(choice_name, parent_name=parent_el.name)
         parent_el.add_subelement(choice_element)
 
         min_occurs = int(node.attrib.get('minOccurs', 1))
@@ -325,12 +325,12 @@ class Generator(object):
 
     # helpers
 
-    def _get_element_from_cache_or_create(self, node):
+    def _get_element_from_cache_or_create(self, node, parent_el):
         name = node.attrib.get('name', None)
         ref = node.attrib.get('ref', None)
         new_el = None
         if name:
-            new_el = self.create_element(name)
+            new_el = self.create_element(name, parent_name=parent_el.name)
             self.elements_cache[name] = new_el
         elif ref:
             cached_el = self.elements_cache.get(ref, None)
