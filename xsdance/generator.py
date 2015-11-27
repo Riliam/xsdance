@@ -69,7 +69,7 @@ class Generator(object):
     '''
 
     default_html_input = '''
-        <input id="{name}" name="{name}" value="{value}"{disabled}/>
+        <input type="text" id="{name}" name="{name}" value="{value}"{disabled}/>
     '''
     default_html_checkbox = '''
         <input type="checkbox" name="{{name}}" id="{{name}}" value="{value}"{{disabled}} {{checked}}/>
@@ -85,7 +85,7 @@ class Generator(object):
     '''  # NOQA
 
     default_html_wrapper = '''
-        <div class="grid-stack-item">
+        <div class="grid-stack-item" {gridster_settings}>
             <div class="grid-stack-item-content" data-element-name="{name}">
                 {edit_checkbox}
                 {content}
@@ -93,14 +93,14 @@ class Generator(object):
         </div>
     '''
     default_html_parent_element_wrapper = '''
-        <div class="admin-irs-grid grid-stack">
+        <div class="grid-stack">
             {content}
         </div>
     '''
     default_html_input_wrapper = '''
         <div class="fieldset">
             {label}
-            <p class="help"> {help_text} </p>
+            {help_text}
             {html_input}
             <div class="error" id="name"></div>
         </div>
@@ -233,18 +233,6 @@ class Generator(object):
             label = _('Fill {min} to {max} of the following boxes')
         choice_element.label_text = label.format(min=choice_element.min_occurs,
                                                  max=choice_element.max_occurs)
-        # choice_element.html_parent_element_wrapper =\
-        #     '''
-        #     <div class="admin-irs-grid grid-stack" data-min={min} data-max={max} data-parent="{{parent_name}}">
-        #         <h4>{{ parent_label }}</h4>
-        #         {{content}}
-        #     </div>
-        #     <div >
-        #            <h4>{{parent_label}}</h4>
-        #            <div data-parent={{parent_name}}>{{content}}</div>
-        #        </div>
-        #     '''.format(min=choice_element.min_occurs,
-        #                max=choice_element.max_occurs)
 
         self._process_subnodes(node, choice_element)
 
