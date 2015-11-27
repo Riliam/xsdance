@@ -127,7 +127,7 @@ class Element(object):
         # min_occurs > 1 and empty form for forms multiplying at frontend
         inlines = ''
         inlines_count = self.inlines_needed()
-        if inlines_count:
+        if inlines_count is not None:
             for i in range(1, inlines_count):
                 inlines += result.replace(self._get_name_with_inline_suffix(),
                                           self._get_name_with_inline_suffix(index=i))
@@ -181,7 +181,7 @@ class Element(object):
 
     def prefixed_name(self):
         name = self.name
-        if self.inlines_needed():
+        if self.inlines_needed() is not None:
             name = self._get_name_with_inline_suffix()
         if self.parent:
             name = '{prefix}{connector}{name}'.format(
@@ -196,7 +196,7 @@ class Element(object):
         # el.parent should evaluate to True, if exists
         while getattr(el, 'parent', None):
             name = el.parent.name
-            if el.parent.inlines_needed():
+            if el.parent.inlines_needed() is not None:
                 name = el.parent._get_name_with_inline_suffix()
             parents.append(name)
             el = el.parent
@@ -211,7 +211,7 @@ class Element(object):
 
     def get_inline_buttons(self):
         result = ''
-        if self.inlines_needed():
+        if self.inlines_needed() is not None:
             result = (self.html_inline_button_remove + self.html_inline_button_add).format(name=self.name)
         return result
 
