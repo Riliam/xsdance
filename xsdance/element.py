@@ -19,7 +19,7 @@ class Element(object):
 
     gridster_default_settings = {
         'data-gs-y': "0",
-        'data-gs-х': "0",
+        'data-gs-x': "0",
         'data-gs-width': "4",
         'data-gs-height': "2",
     }
@@ -196,7 +196,7 @@ class Element(object):
         return result
 
     def get_gridster_settings_attrs(self):
-        return ' '.join('='.join([k, v]) for k, v in self.gridster_default_settings.items())
+        return ' '.join('='.join([k, '"{}"'.format(v)]) for k, v in self.gridster_default_settings.items())
 
     def get_help_text_html(self):
         result = ''

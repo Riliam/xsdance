@@ -60,6 +60,7 @@ class Generator(object):
     TypeNotFound = TypeNotFound
     PRIMITIVE_TYPES_PATH = 'IRS/primitive_types.xsd'
     UNBOUNDED = 999
+    TOP_LEVEL_ELEMENT_NAME = 'schema'
 
     default_html_label = '''
         <label for="{name}" class="{required}">{label_text}</label>
@@ -75,7 +76,7 @@ class Generator(object):
         <input type="checkbox" name="{{name}}" id="{{name}}" value="{value}"{{disabled}} {{checked}}/>
     '''
     default_html_select = '''
-        <select {multiple} name="{{name}}"{{disabled}} data-placeholder="Select">
+        <select {multiple} name="{{name}}"{{disabled}}>
             {options}
         </select>
     '''
@@ -151,6 +152,17 @@ class Generator(object):
 
     def create_element(self, *args, **kwargs):
         all_kwargs_dict = dict(self.element_kwargs, **kwargs)
+
+        name = args[0]
+        parent = kwargs.get('parent', None)
+        if self.TOP_LEVEL_ELEMENT_NAME in (name, parent.name if parent else None):
+            all_kwargs_dict['html_wrapper'] = '''
+                {edit_checkbox}
+                {content}
+            '''
+            all_kwargs_dict['html_parent_element_wrapper'] = '''
+                {content}
+            '''
         return self.element_class(*args, **all_kwargs_dict)
 
     def run(self, xsd_filepath):
@@ -187,7 +199,7 @@ class Generator(object):
         return None
 
     def parse_schema(self, node, el):
-        schema = self.create_element('schema')
+        schema = self.create_element(self.TOP_LEVEL_ELEMENT_NAME)
         self._process_subnodes(node, schema,
                                skip=['simpleType', 'complexType'])
         return schema
