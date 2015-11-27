@@ -65,24 +65,17 @@ class Generator(object):
         <label for="{name}" class="{required}">{label_text}</label>
     '''
     default_html_help = '''
-        <p for="{name}" class="help">{help_text}</p>
+        <span for="{name}" class="help-text">{help_text}</span>
     '''
 
-    default_html_input_wrapper = '''
-        <div class="fieldset">
-            {edit_checkbox}
-            {content}
-            <span class="error"></span>
-        </div>
-    '''
     default_html_input = '''
-        <input type="text" id="{name}" name="{name}" value="{value}"{disabled}/>
+        <input id="{name}" name="{name}" value="{value}"{disabled}/>
     '''
     default_html_checkbox = '''
         <input type="checkbox" name="{{name}}" id="{{name}}" value="{value}"{{disabled}} {{checked}}/>
     '''
     default_html_select = '''
-        <select {multiple} name="{{name}}"{{disabled}}>
+        <select {multiple} name="{{name}}"{{disabled}} data-placeholder="Select">
             {options}
         </select>
     '''
@@ -91,28 +84,25 @@ class Generator(object):
         <label for="ch_hide_{name}">Hide</label><input id="ch_hide_{name}" name="ch_hide_{name}" type="checkbox" {checked}/>
     '''  # NOQA
 
-    default_html_element_wrapper = '''
+    default_html_wrapper = '''
         <div class="grid-stack-item">
-            <div class="grid-stack-item-content" data-element={name}>
-                { content }
-            </div>
-        </div>
-    '''
-    default_html_sequence_wrapper = '''
-        <div class="grid-stack-item">
-            <div class="grid-stack-item-content" data-element={name}>
-                <div class="grid-stack">
-                    <h4>{parent_label}</h4>
-                    <div data-parent={parent_name}>{content}</div>
-                </div>
-                <span class="error"></span>
+            <div class="grid-stack-item-content" data-element-name="{name}">
+                {edit_checkbox}
+                {content}
             </div>
         </div>
     '''
     default_html_parent_element_wrapper = '''
-        <div class="grid-stack">
-            <h4>{parent_label}</h4>
-            <div data-parent={parent_name}>{content}</div>
+        <div class="admin-irs-grid grid-stack">
+            {content}
+        </div>
+    '''
+    default_html_input_wrapper = '''
+        <div class="fieldset">
+            {label}
+            <p class="help"> {help_text} </p>
+            {html_input}
+            <div class="error" id="name"></div>
         </div>
     '''
 
@@ -121,16 +111,15 @@ class Generator(object):
 
                  html_label=default_html_label,
                  html_help=default_html_help,
-                 html_input_wrapper=default_html_input_wrapper,
 
                  html_input=default_html_input,
                  html_checkbox=default_html_checkbox,
                  html_select=default_html_select,
                  html_option=default_html_option,
 
-                 html_element_wrapper=default_html_element_wrapper,
-                 html_sequence_wrapper=default_html_sequence_wrapper,
+                 html_wrapper=default_html_wrapper,
                  html_parent_element_wrapper=default_html_parent_element_wrapper,
+                 html_input_wrapper=default_html_input_wrapper,
 
                  html_edit_checkbox=default_html_edit_checkbox,
                  ):
@@ -154,9 +143,10 @@ class Generator(object):
             'html_label': html_label,
             'html_help': html_help,
             'html_input': html_input,
-            'html_element_wrapper': html_element_wrapper,
+            'html_wrapper': html_wrapper,
             'html_parent_element_wrapper': html_parent_element_wrapper,
             'html_edit_checkbox': html_edit_checkbox,
+            'html_input_wrapper': html_input_wrapper,
         }
 
     def create_element(self, *args, **kwargs):
@@ -243,13 +233,18 @@ class Generator(object):
             label = _('Fill {min} to {max} of the following boxes')
         choice_element.label_text = label.format(min=choice_element.min_occurs,
                                                  max=choice_element.max_occurs)
-        choice_element.html_parent_element_wrapper =\
-            '''<div class="grid-stack choice-wrapper" data-min="{min}" data-max="{max}">
-                   <h4>{{parent_label}}</h4>
-                   <div data-parent={{parent_name}}>{{content}}</div>
-               </div>
-            '''.format(min=choice_element.min_occurs,  # NOQA
-                             max=choice_element.max_occurs)
+        # choice_element.html_parent_element_wrapper =\
+        #     '''
+        #     <div class="admin-irs-grid grid-stack" data-min={min} data-max={max} data-parent="{{parent_name}}">
+        #         <h4>{{ parent_label }}</h4>
+        #         {{content}}
+        #     </div>
+        #     <div >
+        #            <h4>{{parent_label}}</h4>
+        #            <div data-parent={{parent_name}}>{{content}}</div>
+        #        </div>
+        #     '''.format(min=choice_element.min_occurs,
+        #                max=choice_element.max_occurs)
 
         self._process_subnodes(node, choice_element)
 
@@ -319,7 +314,7 @@ class Generator(object):
                 el.html_input = html_input
                 el.add_processor(CheckboxProcessor(value))
             else:
-                choices = [(None, '------')] + list(zip(enum_items, enum_items))
+                choices = list(zip(enum_items, enum_items))
                 options = [self.html_option.format(value=value, text=text)
                            for value, text in choices]
                 html_input = self.html_select.format(
