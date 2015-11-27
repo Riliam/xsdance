@@ -109,10 +109,10 @@ class Generator(object):
     '''
 
     default_html_inline_button_add = '''
-        <a class="btn btn-default btn-add" data-element="{name}><i class="icon-add"></i><span>Add</span></a>
+        <a class="btn btn-default btn-add" data-element="{name}"><i class="icon-add"></i><span>Add</span></a>
     '''
     default_html_inline_button_remove = '''
-        <a class="btn btn-default btn-remove" data-element="{name}><i class="icon-delete"></i><span>Remove</span></a>
+        <a class="btn btn-default btn-remove" data-element="{name}"><i class="icon-delete"></i><span>Remove</span></a>
     '''
 
     def __init__(self, element_class=Element,
