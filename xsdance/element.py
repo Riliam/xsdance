@@ -17,12 +17,7 @@ class Element(object):
         'required': 'This field is required',
     }
 
-    gridster_default_settings = {
-        'data-gs-y': "0",
-        'data-gs-x': "0",
-        'data-gs-width': "4",
-        'data-gs-height': "2",
-    }
+    gridster_default_settings = {}
     inlines_suffix_t = '_#{{{name}:{index}}}'
     inlines_emtpy_suffix_t = '_#{{{name}}}'
 
