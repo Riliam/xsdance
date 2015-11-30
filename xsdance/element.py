@@ -97,8 +97,7 @@ class Element(object):
     def initial_value(self):
         return self.initial_data[self.name]
 
-    def render_html(self, edit_mode=False, hidden_fields=None):
-
+    def render_html(self, edit_mode=False, hidden_fields=None, gridster_settings=None):
         hidden_fields = hidden_fields or []
         if not edit_mode and self.prefixed_name() in hidden_fields:
             return None
@@ -107,21 +106,24 @@ class Element(object):
 
         html_subelements = self._render_subelements_html(
             edit_mode=edit_mode,
-            hidden_fields=hidden_fields,)
+            hidden_fields=hidden_fields,
+            gridster_settings=gridster_settings)
         content = ''
         if html_subelements is not None:
             content = html_subelements \
                 or self._html_input_with_value(edit_mode=edit_mode,
-                                               hidden_fields=hidden_fields)
+                                               hidden_fields=hidden_fields,
+                                               gridster_settings=gridster_settings)
             html_help = self.html_help.format(
                 name=prefixed_name,
                 help_text=self.help_text or '')
             content = content + html_help
 
         result = self.html_wrapper.format(
-            gridster_settings=self.get_gridster_settings_attrs(),
+            gridster_settings=self.get_gridster_settings_attrs(gridster_settings),
             edit_checkbox=self.get_edit_checkbox_input(edit_mode, hidden_fields),
-            name=prefixed_name,
+            prefixed_name=prefixed_name,
+            name=self.name,
             content=content,
             inline_buttons=self.get_inline_buttons())
 
@@ -130,19 +132,27 @@ class Element(object):
         inlines = ''
         inlines_count = self.inlines_needed()
         if inlines_count is not None:
+
             for i in range(1, inlines_count):
                 inlines += result.replace(self._get_name_with_inline_suffix(),
                                           self._get_name_with_inline_suffix(index=i))
-            inlines += result.replace(self._get_name_with_inline_suffix(),
-                                      self._get_name_with_inline_suffix(empty=True))
+
+            empty = result.replace(self._get_name_with_inline_suffix(),
+                                   self._get_name_with_inline_suffix(empty=True))
+            empty = empty.replace('data-element-empty="0"', 'data-element-empty="1"')
+            empty = empty.replace('{hidden}', 'style="display: none;"')
+            inlines += empty
+
+        result = result.replace('{hidden}', '')
 
         return result + inlines
 
-    def _render_subelements_html(self, edit_mode=False, hidden_fields=None):
+    def _render_subelements_html(self, edit_mode=False, hidden_fields=None, gridster_settings=None):
         name = self.name
 
         elements = [el.render_html(edit_mode=edit_mode,
-                                   hidden_fields=hidden_fields)
+                                   hidden_fields=hidden_fields,
+                                   gridster_settings=gridster_settings)
                     for el in self.subelements]
         content = ''.join([el for el in elements if el])
 
@@ -153,7 +163,7 @@ class Element(object):
                 content=content)
         return content
 
-    def _html_input_with_value(self, edit_mode=False, hidden_fields=None):
+    def _html_input_with_value(self, edit_mode=False, hidden_fields=None, gridster_settings=None):
 
         name = self.prefixed_name()
 
@@ -225,15 +235,18 @@ class Element(object):
                 name=self.prefixed_name(),
                 checked='',
             )
-            if self.prefixed_name in hidden_fields:
+            if self.prefixed_name() in hidden_fields:
                 edit_checkbox = self.html_edit_checkbox.format(
                     name=self.prefixed_name(),
                     checked='checked',
                 )
         return edit_checkbox
 
-    def get_gridster_settings_attrs(self):
-        return ' '.join('='.join([k, '"{}"'.format(v)]) for k, v in self.gridster_default_settings.items())
+    def get_gridster_settings_attrs(self, gridster_settings):
+        settings = [s for s in gridster_settings if s.get('prefixed_name', None) == self.prefixed_name()]
+        settings = settings[0] if settings else self.gridster_default_settings
+        return ' '.join('='.join([k, '"{}"'.format(v)]) for k, v in settings.items()
+                        if k.startswith('data-gs-'))
 
     def get_help_text_html(self):
         result = ''
