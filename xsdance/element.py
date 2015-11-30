@@ -39,6 +39,7 @@ class Element(object):
                  html_parent_element_wrapper=None, html_input_wrapper=None,
                  html_help=None, html_edit_checkbox=None,
                  html_inline_button_add=None, html_inline_button_remove=None,
+                 html_inline_buttons_wrapper=None,
 
                  **kwargs):
 
@@ -65,6 +66,7 @@ class Element(object):
         self.html_edit_checkbox = html_edit_checkbox
         self.html_inline_button_add = html_inline_button_add
         self.html_inline_button_remove = html_inline_button_remove
+        self.html_inline_buttons_wrapper = html_inline_buttons_wrapper
         # end
 
         self.kwargs = kwargs
@@ -213,6 +215,7 @@ class Element(object):
         result = ''
         if self.inlines_needed() is not None:
             result = (self.html_inline_button_remove + self.html_inline_button_add).format(name=self.name)
+            result = self.html_inline_buttons_wrapper.format(buttons=result)
         return result
 
     def get_edit_checkbox_input(self, edit_mode, hidden_fields):
