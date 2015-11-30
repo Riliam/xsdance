@@ -86,8 +86,8 @@ class Generator(object):
     '''  # NOQA
 
     default_html_wrapper = '''
-        <div class="grid-stack-item" {gridster_settings}>
-            <div class="grid-stack-item-content" data-element-name="{name}">
+        <div class="grid-stack-item" {gridster_settings} {{hidden}} data-element-name="{name}" data-element-empty="0" data-element-prefixed-name="{prefixed_name}">
+            <div class="grid-stack-item-content">
                 {edit_checkbox}
                 {content}
                 {inline_buttons}
