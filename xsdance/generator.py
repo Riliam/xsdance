@@ -114,6 +114,9 @@ class Generator(object):
     default_html_inline_button_remove = '''
         <a class="btn btn-default btn-remove" data-element="{name}"><i class="icon-delete"></i><span>Remove</span></a>
     '''
+    default_html_inline_buttons_wrapper = '''
+        <div class="wrap-btns">{buttons}</div>
+    '''
 
     def __init__(self, element_class=Element,
                  primitive_types_path=PRIMITIVE_TYPES_PATH,
@@ -127,7 +130,7 @@ class Generator(object):
                  html_option=default_html_option,
                  html_inline_button_add=default_html_inline_button_add,
                  html_inline_button_remove=default_html_inline_button_remove,
-
+                 html_inline_buttons_wrapper=default_html_inline_buttons_wrapper,
                  html_wrapper=default_html_wrapper,
                  html_parent_element_wrapper=default_html_parent_element_wrapper,
                  html_input_wrapper=default_html_input_wrapper,
@@ -160,6 +163,7 @@ class Generator(object):
             'html_input_wrapper': html_input_wrapper,
             'html_inline_button_add': html_inline_button_add,
             'html_inline_button_remove': html_inline_button_remove,
+            'html_inline_buttons_wrapper': html_inline_buttons_wrapper,
         }
 
     def create_element(self, *args, **kwargs):
