@@ -82,7 +82,7 @@ class Generator(object):
     '''
     default_html_option = '<option value="{value}">{text}</option>'
     default_html_edit_checkbox = '''
-        <label for="ch_hide_{name}">Hide</label><input id="ch_hide_{name}" name="ch_hide_{name}" type="checkbox" {checked}/>
+        <input id="ch_hide_{name}" name="ch_hide_{name}" type="checkbox" {checked} class="hide unstyled-field hidden-block"/>
     '''  # NOQA
 
     default_html_wrapper = '''
