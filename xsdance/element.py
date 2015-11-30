@@ -109,10 +109,7 @@ class Element(object):
                 or self._html_input_with_value(edit_mode=edit_mode,
                                                hidden_fields=hidden_fields,
                                                gridster_settings=gridster_settings)
-            html_help = self.html_help.format(
-                name=prefixed_name,
-                help_text=self.help_text or '')
-            content = content + html_help
+            content = content
 
         result = self.html_wrapper.format(
             gridster_settings=self.get_gridster_settings_attrs(gridster_settings),
