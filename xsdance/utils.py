@@ -10,7 +10,7 @@ from lxml import etree
 
 tree = lambda: defaultdict(tree)
 
-re_inline_parent_name = re.compile(r'([a-zA-Z0-9]+)#\{\1:([0-9]+)\}')
+re_inline_parent_name = re.compile(r'([a-zA-Z0-9]+)_#\{\1:([0-9]+)\}')
 
 
 def add(d, keys, value, process_input=lambda value, _: value):
@@ -22,7 +22,7 @@ def add(d, keys, value, process_input=lambda value, _: value):
             key = m.group(1)
             index = m.group(2)
             process_input =\
-                lambda value, content: dict({index: value}, **content)
+                lambda value, content: dict({index: value}, **(content or {})) if value else {}
         # create empty dict for given keyif not last element
         # or add value, if element is last
         last_element = (i == len(keys) - 1)
@@ -36,7 +36,8 @@ def parse_inputs(inputs, divider='__'):
     d = tree()
     for name, value in inputs.items():
         add(d, name.split(divider), value)
-    return json.loads(json.dumps(d))
+    result = json.loads(json.dumps(d))
+    return result
 
 
 def _serialize_xml(d, root=None):
