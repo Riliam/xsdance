@@ -86,7 +86,7 @@ class Generator(object):
     '''  # NOQA
 
     default_html_wrapper = '''
-        <div class="grid-stack-item" {gridster_settings} {{hidden}} data-element-name="{name}" data-element-empty="0" data-element-prefixed-name="{prefixed_name}">
+        <div class="grid-stack-item" {gridster_settings} data-element-name="{name}" data-element-empty="0" data-element-prefixed-name="{prefixed_name}">
             <div class="grid-stack-item-content">
                 {edit_checkbox}
                 {content}
@@ -109,10 +109,10 @@ class Generator(object):
     '''
 
     default_html_inline_button_add = '''
-        <a class="btn btn-default btn-add add-inline" data-element="{name}"><i class="icon-add"></i><span>Add</span></a>
+        <a class="btn btn-default btn-add add-inline" data-element-name="{name}" data-elements-count="{count}" data-empty-item-wrapper="{{empty_item_wrapper}}"><i class="icon-add"></i><span>Add</span></a>
     '''
     default_html_inline_button_remove = '''
-        <a class="btn btn-default btn-remove remove-inline" data-element="{name}"><i class="icon-delete"></i><span>Remove</span></a>
+        <a class="btn btn-default btn-remove remove-inline" data-element-name="{name}"><i class="icon-delete"></i><span>Remove</span></a>
     '''
     default_html_inline_buttons_wrapper = '''
         <div class="wrap-btns">{buttons}</div>
