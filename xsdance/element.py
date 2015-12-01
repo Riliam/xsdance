@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals, print_function, division, absolute_import  # NOQA
+from cgi import escape
 
 from .utils import serialize_xml, serialize_json
 
@@ -117,12 +118,15 @@ class Element(object):
             prefixed_name=prefixed_name,
             name=self.name,
             content=content,
-            inline_buttons=self.get_inline_buttons())
+            inline_buttons=self.get_inline_buttons(),
+        )
 
         # inlines additional forms appends here, including additional forms if
         # min_occurs > 1 and empty form for forms multiplying at frontend
         inlines = ''
+        empty = ''
         inlines_count = self.inlines_needed()
+
         if inlines_count is not None:
 
             for i in range(1, inlines_count):
@@ -133,9 +137,10 @@ class Element(object):
                                    self._get_name_with_inline_suffix(empty=True))
             empty = empty.replace('data-element-empty="0"', 'data-element-empty="1"')
             empty = empty.replace('{hidden}', 'style="display: none;"')
-            inlines += empty
 
+        result = result + inlines
         result = result.replace('{hidden}', '')
+        result = result.replace('{empty_item_wrapper}', escape(empty, quote=True))
 
         return result + inlines
 
@@ -216,7 +221,8 @@ class Element(object):
     def get_inline_buttons(self):
         result = ''
         if self.inlines_needed() is not None:
-            result = (self.html_inline_button_remove + self.html_inline_button_add).format(name=self.name)
+            result = self.html_inline_button_remove + self.html_inline_button_add
+            result = result.format(name=self.name, count=self.inlines_needed())
             result = self.html_inline_buttons_wrapper.format(buttons=result)
         return result
 
