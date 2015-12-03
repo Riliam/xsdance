@@ -86,21 +86,25 @@ class Generator(object):
     '''  # NOQA
 
     default_html_wrapper = '''
-        <div class="grid-stack-item" {gridster_settings} data-element-name="{name}" data-element-empty="0" data-element-prefixed-name="{prefixed_name}">
-            <div class="grid-stack-item-content">
-                {edit_checkbox}
-                {content}
-                {inline_buttons}
-            </div>
+        <div class="grid-stack-item"
+            {gridster_settings}
+            data-element-name="{name}"
+            data-element-prefixed-name="{prefixed_name}">
+
+          <div class="grid-stack-item-content">
+              {edit_checkbox}
+              {content}
+              {inline_buttons}
+          </div>
         </div>
     '''
     default_html_parent_element_wrapper = '''
-        <div class="grid-stack">
+        <div class="grid-stack fieldset-content">
             {content}
         </div>
     '''
     default_html_input_wrapper = '''
-        <div class="fieldset">
+        <div class="fieldset fieldset-content">
             {label}
             {help_text}
             {html_input}
@@ -109,13 +113,35 @@ class Generator(object):
     '''
 
     default_html_inline_button_add = '''
-        <a class="btn btn-default btn-add add-inline" data-element-name="{name}" data-elements-count="{count}" data-empty-item-wrapper="{{empty_item_wrapper}}"><i class="icon-add"></i><span>Add</span></a>
+        <a class="btn btn-default btn-add add-inline"
+            data-element-name="{name}"
+            data-max-elements-count="{max_count}"
+            data-empty-item-wrapper="{empty}">
+
+          <i class="icon-add"></i><span>Add</span>
+
+        </a>
     '''
     default_html_inline_button_remove = '''
-        <a class="btn btn-default btn-remove remove-inline" data-element-name="{name}"><i class="icon-delete"></i><span>Remove</span></a>
+        <a class="btn btn-default btn-remove remove-inline"
+            data-element-name="{name}"
+            data-min-elements-count="{min_count}">
+
+          <i class="icon-delete"></i><span>Remove</span>
+
+        </a>
     '''
     default_html_inline_buttons_wrapper = '''
-        <div class="wrap-btns">{buttons}</div>
+        <div class="wrap-btns">{content}</div>
+    '''
+
+    default_html_inline_item_wrapper = '''
+        <div class="grid-stack-item">
+            <div class="gird-stack-item-content">
+                {content}
+            </div>
+            {remove_button}
+        </div>
     '''
 
     def __init__(self, element_class=Element,
@@ -134,6 +160,7 @@ class Generator(object):
                  html_wrapper=default_html_wrapper,
                  html_parent_element_wrapper=default_html_parent_element_wrapper,
                  html_input_wrapper=default_html_input_wrapper,
+                 html_inline_item_wrapper=default_html_inline_item_wrapper,
 
                  html_edit_checkbox=default_html_edit_checkbox,
                  ):
@@ -164,6 +191,7 @@ class Generator(object):
             'html_inline_button_add': html_inline_button_add,
             'html_inline_button_remove': html_inline_button_remove,
             'html_inline_buttons_wrapper': html_inline_buttons_wrapper,
+            'html_inline_item_wrapper': html_inline_item_wrapper,
         }
 
     def create_element(self, *args, **kwargs):
