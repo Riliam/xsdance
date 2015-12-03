@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals, print_function, division, absolute_import  # NOQA
 from cgi import escape
+import re
 
 from .utils import serialize_xml, serialize_json
 
@@ -222,10 +223,16 @@ class Element(object):
         if self.inlines_needed() is not None:
             name = self._get_name_with_inline_suffix()
         if self.parent:
+            prefix = self._get_full_prefix()
+            connector = self.nesting_connector
             name = '{prefix}{connector}{name}'.format(
-                prefix=self._get_full_prefix(),
-                connector=self.nesting_connector,
+                prefix=prefix,
+                connector=connector,
                 name=name)
+
+        # so :choice_2: will be separated from its variants by '_' not '__'
+        name = re.sub(r'(:choice_[0-9]+:)_', r'\1', name)
+
         return name
 
     def _get_full_prefix(self):

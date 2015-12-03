@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals, print_function, division, absolute_import  # NOQA
+from pprint import pprint  # NOQA
 
 from collections import defaultdict
 import re
@@ -9,11 +10,13 @@ from lxml import etree
 
 
 tree = lambda: defaultdict(tree)
+tree_to_dict = lambda t: json.loads(json.dumps(t))
 
 re_inline_parent_name = re.compile(r'([a-zA-Z0-9]+)_#\{\1:([0-9]+)\}')
 
 
-def add(d, keys, value, process_input=lambda value, _: value):
+def add(d, keys, value, process_input=lambda v, _: v):
+
     for i, key in enumerate(keys):
         # check if current key looks like inline parent
         # if true, switch `process_input` function to support lists
@@ -21,22 +24,51 @@ def add(d, keys, value, process_input=lambda value, _: value):
         if m:
             key = m.group(1)
             index = m.group(2)
-            process_input =\
-                lambda value, content: dict({index: value}, **(content or {})) if value else {}
-        # create empty dict for given keyif not last element
+
+            process_input = lambda v, content: dict({index: v}, **(content or {}))
+        # create empty dict for given key if not last element
         # or add value, if element is last
         last_element = (i == len(keys) - 1)
         if last_element:
             d[key] = process_input(value, d[key]) or None
         else:
+            # assign existent tree or create new tree - d is `tree` instance
             d = d[key]
 
 
-def parse_inputs(inputs, divider='__'):
+def _assign_value(tr, key, v):
+    tr[key] = v
+
+
+def add1(d, keys, value, process_input=lambda v, _: v, assign_value=_assign_value):
+
+    for i, key in enumerate(keys):
+        # check if current key looks like inline parent
+        # if true, switch `process_input` function to support lists
+        m = re_inline_parent_name.match(key)
+        if m:
+            key = m.group(1)
+            index = m.group(2)
+
+            def func(tr, key, v):
+                tr[index] = dict((tr[index] or {}), **{key: v})
+
+            assign_value = func
+        # create empty dict for given key if not last element
+        # or add value, if element is last
+        last_element = (i == len(keys) - 1)
+        if last_element:
+            assign_value(d, key, value)
+        else:
+            # assign existent tree or create new tree - d is `tree` instance
+            d = d[key]
+
+
+def parse_inputs(inputs, divider='__', add_func=add1):
     d = tree()
     for name, value in inputs.items():
-        add(d, name.split(divider), value)
-    result = json.loads(json.dumps(d))
+        add1(d, name.split(divider), value)
+    result = tree_to_dict(d)
     return result
 
 
