@@ -135,6 +135,15 @@ class Generator(object):
         <div class="wrap-btns">{content}</div>
     '''
 
+    default_html_inline_item_wrapper = '''
+        <div class="grid-stack-item">
+            <div class="gird-stack-item-content">
+                {content}
+            </div>
+            {remove_button}
+        </div>
+    '''
+
     def __init__(self, element_class=Element,
                  primitive_types_path=PRIMITIVE_TYPES_PATH,
 
@@ -151,6 +160,7 @@ class Generator(object):
                  html_wrapper=default_html_wrapper,
                  html_parent_element_wrapper=default_html_parent_element_wrapper,
                  html_input_wrapper=default_html_input_wrapper,
+                 html_inline_item_wrapper=default_html_inline_item_wrapper,
 
                  html_edit_checkbox=default_html_edit_checkbox,
                  ):
@@ -181,6 +191,7 @@ class Generator(object):
             'html_inline_button_add': html_inline_button_add,
             'html_inline_button_remove': html_inline_button_remove,
             'html_inline_buttons_wrapper': html_inline_buttons_wrapper,
+            'html_inline_item_wrapper': html_inline_item_wrapper,
         }
 
     def create_element(self, *args, **kwargs):

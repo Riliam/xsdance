@@ -27,15 +27,6 @@ class Element(object):
     inlines_suffix_t = '_#{{{name}:{index}}}'
     inlines_emtpy_suffix_t = '_#{{{name}}}'
 
-    inline_item_wrapper = '''
-        <div class="grid-stack-item">
-            <div class="gird-stack-item-content">
-                {content}
-            </div>
-            {remove_button}
-        </div>
-    '''
-
     def __init__(self, name, initial_data=None,
                  label_text='',
                  help_text='',
@@ -50,6 +41,7 @@ class Element(object):
                  html_help=None, html_edit_checkbox=None,
                  html_inline_button_add=None, html_inline_button_remove=None,
                  html_inline_buttons_wrapper=None,
+                 html_inline_item_wrapper=None,
 
                  **kwargs):
 
@@ -77,6 +69,7 @@ class Element(object):
         self.html_inline_button_add = html_inline_button_add
         self.html_inline_button_remove = html_inline_button_remove
         self.html_inline_buttons_wrapper = html_inline_buttons_wrapper
+        self.html_inline_item_wrapper = html_inline_item_wrapper
         # end
 
         self.kwargs = kwargs
@@ -174,8 +167,8 @@ class Element(object):
             )
         return result
 
-    def _wrap_with_inline_item_wrapper(self, content, noremove=False):
-        result = self.inline_item_wrapper.format(
+    def _wrap_with_html_inline_item_wrapper(self, content, noremove=False):
+        result = self.html_inline_item_wrapper.format(
             content=content,
             remove_button='' if noremove else self.get_remove_button())
         return result
@@ -186,16 +179,16 @@ class Element(object):
         for i in range(1, inlines_count):
             item = content.replace(self._get_name_with_inline_suffix(),
                                    self._get_name_with_inline_suffix(index=i))
-            item = self._wrap_with_inline_item_wrapper(item)
+            item = self._wrap_with_html_inline_item_wrapper(item)
             inlines += item
-        content = self._wrap_with_inline_item_wrapper(content, noremove=True)
+        content = self._wrap_with_html_inline_item_wrapper(content, noremove=True)
         content = content + inlines
         return content
 
     def _render_empty_item(self, content):
         empty = content.replace(self._get_name_with_inline_suffix(),
                                 self._get_name_with_inline_suffix(empty=True))
-        empty = self._wrap_with_inline_item_wrapper(empty)
+        empty = self._wrap_with_html_inline_item_wrapper(empty)
         return empty
 
     def _wrap_with_inline_block_wrapper(self, content, empty):
