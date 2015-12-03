@@ -27,6 +27,15 @@ class Element(object):
     inlines_suffix_t = '_#{{{name}:{index}}}'
     inlines_emtpy_suffix_t = '_#{{{name}}}'
 
+    inline_item_wrapper = '''
+        <div class="grid-stack-item">
+            <div class="gird-stack-item-content">
+                {content}
+            </div>
+            {remove_button}
+        </div>
+    '''
+
     def __init__(self, name, initial_data=None,
                  label_text='',
                  help_text='',
@@ -99,55 +108,27 @@ class Element(object):
         return self.initial_data[self.name]
 
     def render_html(self, edit_mode=False, hidden_fields=None, gridster_settings=None):
-        hidden_fields = hidden_fields or []
+        kwargs = {
+            'edit_mode': edit_mode,
+            'hidden_fields': hidden_fields,
+            'gridster_settings': gridster_settings
+        }
+
         if not edit_mode and self.prefixed_name() in hidden_fields:
             return None
 
-        prefixed_name = self.prefixed_name()
+        if self.subelements:
+            content = self._render_subelements_html(**kwargs)
+        else:
+            content = self._render_html_input_with_value(**kwargs)
 
-        html_subelements = self._render_subelements_html(
-            edit_mode=edit_mode,
-            hidden_fields=hidden_fields,
-            gridster_settings=gridster_settings)
-        content = ''
-        if html_subelements is not None:
-            content = html_subelements \
-                or self._html_input_with_value(edit_mode=edit_mode,
-                                               hidden_fields=hidden_fields,
-                                               gridster_settings=gridster_settings)
-            content = content
+        if self.inlines_needed() is not None:
+            inline_content = self._render_inline_content(content)
+            empty_item = self._render_empty_item(content)
+            content = self._wrap_with_inline_block_wrapper(inline_content, empty_item)
 
-        result = self.html_wrapper.format(
-            gridster_settings=self.get_gridster_settings_attrs(gridster_settings),
-            edit_checkbox=self.get_edit_checkbox_input(edit_mode, hidden_fields),
-            prefixed_name=prefixed_name,
-            name=self.name,
-            content=content,
-            inline_buttons=self.get_inline_buttons(),
-        )
-
-        # inlines additional forms appends here, including additional forms if
-        # min_occurs > 1 and empty form for forms multiplying at frontend
-        inlines = ''
-        empty = ''
-        inlines_count = self.inlines_needed()
-
-        if inlines_count is not None:
-
-            for i in range(1, inlines_count):
-                inlines += result.replace(self._get_name_with_inline_suffix(),
-                                          self._get_name_with_inline_suffix(index=i))
-
-            empty = result.replace(self._get_name_with_inline_suffix(),
-                                   self._get_name_with_inline_suffix(empty=True))
-            empty = empty.replace('data-element-empty="0"', 'data-element-empty="1"')
-            empty = empty.replace('{hidden}', 'style="display: none;"')
-
-        result = result + inlines
-        result = result.replace('{hidden}', '')
-        result = result.replace('{empty_item_wrapper}', escape(empty, quote=True))
-
-        return result + inlines
+        content = self._wrap_with_item_wrapper(content)
+        return content
 
     def _render_subelements_html(self, edit_mode=False, hidden_fields=None, gridster_settings=None):
         name = self.name
@@ -165,7 +146,7 @@ class Element(object):
                 content=content)
         return content
 
-    def _html_input_with_value(self, edit_mode=False, hidden_fields=None, gridster_settings=None):
+    def _render_html_input_with_value(self, edit_mode=False, hidden_fields=None, gridster_settings=None):
 
         name = self.prefixed_name()
 
@@ -191,6 +172,55 @@ class Element(object):
                 help_text=self.get_help_text_html(),
                 name=name,
             )
+        return result
+
+    def _wrap_with_inline_item_wrapper(self, content, noremove=False):
+        result = self.inline_item_wrapper.format(
+            content=content,
+            remove_button='' if noremove else self.get_remove_button())
+        return result
+
+    def _render_inline_content(self, content):
+        inlines_count = self.inlines_needed()
+        inlines = ''
+        for i in range(1, inlines_count):
+            item = content.replace(self._get_name_with_inline_suffix(),
+                                   self._get_name_with_inline_suffix(index=i))
+            item = self._wrap_with_inline_item_wrapper(item)
+            inlines += item
+        content = self._wrap_with_inline_item_wrapper(content, noremove=True)
+        content = content + inlines
+        return content
+
+    def _render_empty_item(self, content):
+        empty = content.replace(self._get_name_with_inline_suffix(),
+                                self._get_name_with_inline_suffix(empty=True))
+        empty = self._wrap_with_inline_item_wrapper(empty)
+        return empty
+
+    def _wrap_with_inline_block_wrapper(self, content, empty):
+        wrapped = '''
+            <div class="grid-stack fieldset-content">
+                {content}
+                {add_button}
+            </div>
+        '''.format(content=content, add_button=self.get_add_button(empty))
+        return wrapped
+
+    def _wrap_with_item_wrapper(self, content, edit_mode=False,
+                                hidden_fields=None, gridster_settings=None):
+        prefixed_name = self.prefixed_name()
+        gridster_settings_attrs =\
+            self.get_gridster_settings_attrs(gridster_settings)
+        edit_checkbox = self.get_edit_checkbox_input(edit_mode, hidden_fields)
+
+        result = self.html_wrapper.format(
+            gridster_settings=gridster_settings_attrs,
+            edit_checkbox=edit_checkbox,
+            prefixed_name=prefixed_name,
+            name=self.name,
+            content=content,
+            inline_buttons='')
         return result
 
     def prefixed_name(self):
@@ -223,13 +253,22 @@ class Element(object):
     def inlines_needed(self):
         return (self.min_occurs or 1) if self.max_occurs > 1 else None
 
-    def get_inline_buttons(self):
-        result = ''
+    def get_remove_button(self):
+        btn = ''
         if self.inlines_needed() is not None:
-            result = self.html_inline_button_remove + self.html_inline_button_add
-            result = result.format(name=self.name, count=self.inlines_needed())
-            result = self.html_inline_buttons_wrapper.format(buttons=result)
-        return result
+            btn = self.html_inline_button_remove.format(
+                name=self.name,
+                min_count=self.min_occurs)
+        return self.html_inline_buttons_wrapper.format(content=btn)
+
+    def get_add_button(self, empty):
+        btn = ''
+        if self.inlines_needed() is not None:
+            btn = self.html_inline_button_add.format(
+                name=self.name,
+                max_count=self.max_occurs,
+                empty=escape(empty, quote=True))
+        return self.html_inline_buttons_wrapper.format(content=btn)
 
     def get_edit_checkbox_input(self, edit_mode, hidden_fields):
         edit_checkbox = ''
@@ -246,6 +285,7 @@ class Element(object):
         return edit_checkbox
 
     def get_gridster_settings_attrs(self, gridster_settings):
+        gridster_settings = gridster_settings or []
         settings = [s for s in gridster_settings if s.get('prefixed_name', None) == self.prefixed_name()]
         settings = settings[0] if settings else self.gridster_default_settings
         return ' '.join('='.join([k, '"{}"'.format(v)]) for k, v in settings.items()
