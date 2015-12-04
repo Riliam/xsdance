@@ -40,7 +40,7 @@ def _assign_value(tr, key, v):
     tr[key] = v
 
 
-def add1(d, keys, value, process_input=lambda v, _: v, assign_value=_assign_value):
+def add1(d, keys, value, assign_value=_assign_value):
 
     for i, key in enumerate(keys):
         # check if current key looks like inline parent
