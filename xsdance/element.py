@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals, print_function, division, absolute_import  # NOQA
 from cgi import escape
+import re
 
 from .utils import serialize_xml, serialize_json
 
@@ -116,11 +117,14 @@ class Element(object):
             content = self._render_html_input_with_value(**kwargs)
 
         if self.inlines_needed() is not None:
-            inline_content = self._render_inline_content(content)
+            inline_content = self._render_inline_content(content, gridster_settings=gridster_settings)
             empty_item = self._render_empty_item(content, gridster_settings=gridster_settings)
             content = self._wrap_with_inline_block_wrapper(inline_content, empty_item)
 
-        content = self._wrap_with_item_wrapper(content)
+        content = self._wrap_with_item_wrapper(content,
+                                               edit_mode=edit_mode,
+                                               hidden_fields=hidden_fields,
+                                               gridster_settings=gridster_settings)
         return content
 
     def _render_subelements_html(self, edit_mode=False, hidden_fields=None, gridster_settings=None):
@@ -222,10 +226,16 @@ class Element(object):
         if self.inlines_needed() is not None:
             name = self._get_name_with_inline_suffix()
         if self.parent:
+            prefix = self._get_full_prefix()
+            connector = self.nesting_connector
             name = '{prefix}{connector}{name}'.format(
-                prefix=self._get_full_prefix(),
-                connector=self.nesting_connector,
+                prefix=prefix,
+                connector=connector,
                 name=name)
+
+        # so :choice_2: will be separated from its variants by '_' not '__'
+        name = re.sub(r'(:choice_[0-9]+:)_', r'\1', name)
+
         return name
 
     def _get_full_prefix(self):
@@ -276,6 +286,7 @@ class Element(object):
                     name=self.prefixed_name(),
                     checked='checked',
                 )
+
         return edit_checkbox
 
     def get_gridster_settings_attrs(self, gridster_settings):

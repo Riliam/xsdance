@@ -1,0 +1,28 @@
+c = 'Some text'
+
+d_#{d:0} = 'D value 0'
+d_#{d:1} = 'D value 1'
+
+e_#{e:0}__f = 'F value of E value 0'
+e_#{e:0}__g = 'G value of E value 0'
+e_#{e:0}__h = 'H value of E value 0'
+
+e_#{e:1}__f = 'F value of E value 1'
+e_#{e:1}__g = 'G value of E value 1'
+e_#{e:1}__h = 'H value of E value 1'
+
+
+{
+  "c": "Some text",
+  "d": ["D value 0", "D value 1"],
+
+  "e": [
+        {"f": "F value of E value 0",
+         "g": "G value of E value 0",
+         "h": "H value of E value 0"},
+
+        {"f": "F value of E value 1",
+         "g": "G value of E value 1",
+         "h": "H value of E value 1"}
+       ]
+}
