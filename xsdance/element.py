@@ -117,11 +117,14 @@ class Element(object):
             content = self._render_html_input_with_value(**kwargs)
 
         if self.inlines_needed() is not None:
-            inline_content = self._render_inline_content(content)
+            inline_content = self._render_inline_content(content, gridster_settings=gridster_settings)
             empty_item = self._render_empty_item(content, gridster_settings=gridster_settings)
             content = self._wrap_with_inline_block_wrapper(inline_content, empty_item)
 
-        content = self._wrap_with_item_wrapper(content)
+        content = self._wrap_with_item_wrapper(content,
+                                               edit_mode=edit_mode,
+                                               hidden_fields=hidden_fields,
+                                               gridster_settings=gridster_settings)
         return content
 
     def _render_subelements_html(self, edit_mode=False, hidden_fields=None, gridster_settings=None):
@@ -283,6 +286,7 @@ class Element(object):
                     name=self.prefixed_name(),
                     checked='checked',
                 )
+
         return edit_checkbox
 
     def get_gridster_settings_attrs(self, gridster_settings):
