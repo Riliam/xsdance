@@ -136,7 +136,7 @@ class Generator(object):
     '''
 
     default_html_inline_item_wrapper = '''
-        <div class="grid-stack-item">
+        <div class="grid-stack-item" {gridster_settings}>
             <div class="gird-stack-item-content">
                 {content}
             </div>
