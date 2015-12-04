@@ -117,7 +117,7 @@ class Element(object):
 
         if self.inlines_needed() is not None:
             inline_content = self._render_inline_content(content)
-            empty_item = self._render_empty_item(content)
+            empty_item = self._render_empty_item(content, gridster_settings=gridster_settings)
             content = self._wrap_with_inline_block_wrapper(inline_content, empty_item)
 
         content = self._wrap_with_item_wrapper(content)
@@ -167,28 +167,29 @@ class Element(object):
             )
         return result
 
-    def _wrap_with_html_inline_item_wrapper(self, content, noremove=False):
+    def _wrap_with_html_inline_item_wrapper(self, content, noremove=False, gridster_settings=None):
         result = self.html_inline_item_wrapper.format(
             content=content,
-            remove_button='' if noremove else self.get_remove_button())
+            remove_button='' if noremove else self.get_remove_button(),
+            gridster_settings=self.get_gridster_settings_attrs(gridster_settings))
         return result
 
-    def _render_inline_content(self, content):
+    def _render_inline_content(self, content, gridster_settings=None):
         inlines_count = self.inlines_needed()
         inlines = ''
         for i in range(1, inlines_count):
             item = content.replace(self._get_name_with_inline_suffix(),
                                    self._get_name_with_inline_suffix(index=i))
-            item = self._wrap_with_html_inline_item_wrapper(item)
+            item = self._wrap_with_html_inline_item_wrapper(item, gridster_settings=gridster_settings)
             inlines += item
-        content = self._wrap_with_html_inline_item_wrapper(content, noremove=True)
+        content = self._wrap_with_html_inline_item_wrapper(content, noremove=False, gridster_settings=gridster_settings)
         content = content + inlines
         return content
 
-    def _render_empty_item(self, content):
+    def _render_empty_item(self, content, gridster_settings=None):
         empty = content.replace(self._get_name_with_inline_suffix(),
                                 self._get_name_with_inline_suffix(empty=True))
-        empty = self._wrap_with_html_inline_item_wrapper(empty)
+        empty = self._wrap_with_html_inline_item_wrapper(empty, gridster_settings=gridster_settings)
         return empty
 
     def _wrap_with_inline_block_wrapper(self, content, empty):
