@@ -115,6 +115,7 @@ class Generator(object):
     default_html_inline_button_add = '''
         <a class="btn btn-default btn-add add-inline"
             data-element-name="{name}"
+            data-elements-count="{current_elements_count}"
             data-max-elements-count="{max_count}"
             data-empty-item-wrapper="{empty}">
 

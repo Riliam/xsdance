@@ -271,6 +271,7 @@ class Element(object):
         if self.inlines_needed() is not None:
             btn = self.html_inline_button_add.format(
                 name=self.name,
+                current_elements_count=self.inlines_needed(),
                 max_count=self.max_occurs,
                 empty=escape(empty, quote=True))
         return self.html_inline_buttons_wrapper.format(content=btn)
@@ -287,7 +288,6 @@ class Element(object):
                     name=self.prefixed_name(),
                     checked='checked',
                 )
-
         return edit_checkbox
 
     def get_gridster_settings_attrs(self, gridster_settings, inline_wrapper=False):
