@@ -175,7 +175,8 @@ class Element(object):
         result = self.html_inline_item_wrapper.format(
             content=content,
             remove_button='' if noremove else self.get_remove_button(),
-            gridster_settings=self.get_gridster_settings_attrs(gridster_settings))
+            gridster_settings=self.get_gridster_settings_attrs(gridster_settings, inline_wrapper=True),
+            prefixed_name=self.prefixed_name())
         return result
 
     def _render_inline_content(self, content, gridster_settings=None):
@@ -207,7 +208,7 @@ class Element(object):
 
     def _wrap_with_item_wrapper(self, content, edit_mode=False,
                                 hidden_fields=None, gridster_settings=None):
-        prefixed_name = self.prefixed_name()
+        prefixed_name = self.prefixed_name(process_inlines=False)
         gridster_settings_attrs =\
             self.get_gridster_settings_attrs(gridster_settings)
         edit_checkbox = self.get_edit_checkbox_input(edit_mode, hidden_fields)
@@ -221,9 +222,9 @@ class Element(object):
             inline_buttons='')
         return result
 
-    def prefixed_name(self):
+    def prefixed_name(self, process_inlines=True):
         name = self.name
-        if self.inlines_needed() is not None:
+        if process_inlines and self.inlines_needed() is not None:
             name = self._get_name_with_inline_suffix()
         if self.parent:
             prefix = self._get_full_prefix()
@@ -289,9 +290,12 @@ class Element(object):
 
         return edit_checkbox
 
-    def get_gridster_settings_attrs(self, gridster_settings):
+    def get_gridster_settings_attrs(self, gridster_settings, inline_wrapper=False):
         gridster_settings = gridster_settings or []
-        settings = [s for s in gridster_settings if s.get('prefixed_name', None) == self.prefixed_name()]
+        process_inlines = inline_wrapper
+        prefixed_name = self.prefixed_name(process_inlines=process_inlines)
+        settings = [s for s in gridster_settings
+                    if s.get('prefixed_name', None) == prefixed_name]
         settings = settings[0] if settings else self.gridster_default_settings
         return ' '.join('='.join([k, '"{}"'.format(v)]) for k, v in settings.items()
                         if k.startswith('data-gs-'))
