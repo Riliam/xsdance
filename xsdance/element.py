@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals, print_function, division, absolute_import  # NOQA
+from pprint import pprint  # NOQA
 from cgi import escape
 import re
+from collections import defaultdict
+from itertools import groupby
 
 from .utils import serialize_xml, serialize_json
 
@@ -17,6 +20,9 @@ class Element(object):
     nesting_connector = '__'
     error_messages = {
         'required': 'This field is required',
+        'too_many_choices': 'Too many choices selected',
+        'max_occurs_violated': 'Up to {} values allowed',
+        'min_occurs_violated': 'No less than {} value allowed',
     }
 
     gridster_default_settings = {
@@ -152,7 +158,7 @@ class Element(object):
             html_label = self.html_label.format(
                 name=name,
                 label_text=self.label_text or name,
-                required=self.required(),
+                required=self.get_class_required(),
             )
             value = self.initial_data.get(self.name) or ''
             checked = ' checked' if self.is_checkbox and value else ''
@@ -222,12 +228,12 @@ class Element(object):
             inline_buttons='')
         return result
 
-    def prefixed_name(self, process_inlines=True):
+    def prefixed_name(self, prefix=None, index=0, process_inlines=True):
         name = self.name
         if process_inlines and self.inlines_needed() is not None:
-            name = self._get_name_with_inline_suffix()
+            name = self._get_name_with_inline_suffix(index=index)
         if self.parent:
-            prefix = self._get_full_prefix()
+            prefix = prefix or self._get_full_prefix()
             connector = self.nesting_connector
             name = '{prefix}{connector}{name}'.format(
                 prefix=prefix,
@@ -320,29 +326,122 @@ class Element(object):
             raise Element.ValueRequiredError
         return serialize_json(self.cleaned_data())
 
-    def validate(self, d):
-        errors = {}
-        value = d.get(self.name, {})
-        for sub in self.subelements:
-            v = sub.process_value(value.get(sub.name, None))
-            if v is None and sub.min_occurs > 0:
-                errors[sub.prefixed_name()] = [self.error_messages['required']]
+    def validate_inputs(self, source):
+        cleaned = {}
+        errors = defaultdict(list)
+
+        # validate with validators
+        for k, v in source.items():
+            el = self.get_element_by_path(k)
+            cleaned[re.sub(r':choice_\d+:_', r'', k)], errors[k] = el.validate_atom(v)
+
+        # validate required fields
+        required_masks = self.get_required_masks()
+        for k, v in cleaned.items():
+            for mask in required_masks:
+                if re.match(mask, k) and cleaned[k]:
+                    break
+            # loop's else
             else:
-                suberrors = sub.validate(value)
-                if suberrors:
-                    errors.update(suberrors)
+                errors[k] = errors[k] + [self.error_messages['required']]
 
+        # validate choices
+        choice_elements = self._get_choice_elements()
+        for ch in choice_elements:
+            inputs = [k for k in cleaned.keys() if ch.name in k]
+
+            for group in groupby(sorted(inputs), key=lambda x: x.split(ch.name)[0]):
+                prefix, group_input_keys = group
+                if len([k for k in group_input_keys if cleaned(k)]) > ch.max_occurs:
+                    k = prefix + ch.name
+                    errors[k] = errors[k] + [self.error_messages['too_many_choices']]
+
+        # validate inlines count
+        inline_elements = self._get_inline_elements()
+        for inline in inline_elements:
+            inputs = [x for x in cleaned.keys() if inline.name in x]
+
+            rx = re.compile(r'#{' + inline.name + ':(\d+)}')
+            groups = groupby(sorted(inputs), key=lambda x: rx.search(x).group(1))
+            inlines_count = len(list(groups))
+            if inlines_count > 2:
+                k = inline.prefixed_name()
+                errors[k] = errors[k] + [self.error_messages['max_occurs_violated'].format(inline.max_occurs)]
+            if inlines_count < inline.min_occurs:
+                k = inline.prefixed_name()
+                errors[k] = errors[k] + [self.error_messages['min_occurs_violated'].format(inline.min_occurs)]
+
+        errors = {k: v for k, v in errors.items() if v}
+        return cleaned, errors
+
+    def validate_atom(self, value):
         processed = self.process_value(value)
-        self.cleaned_value = processed
+        errors = map(lambda v: v(processed), self.validators)
+        errors = filter(bool, errors)
+        return processed, errors
 
-        for validator in self.validators:
-            result = validator(processed)
-            if result:
-                errors[self.prefixed_name()] =\
-                    errors.get(self.prefixed_name(), []) + [result]
+    def _get_choice_elements(self):
+        choice_elements = []
+        elements = [self]
+        while elements:
+            el = elements.pop()
+            if 'choice' in el.name:
+                choice_elements.append(el)
+            elements.extend(el.subelements or [])
+        return choice_elements
 
-        self.errors = errors
-        return self.errors
+    def _get_inline_elements(self):
+        inline_elements = []
+        elements = [self]
+        while elements:
+            el = elements.pop()
+            if el.inlines_needed():
+                inline_elements.append(el)
+            elements.extend(el.subelements or [])
+        return inline_elements
+
+    def get_element_by_path(self, path):
+        # remove indexed inline marks
+        path_string = re.sub(r'([a-zA-Z0-9]+)_#{\1:[0-9]+}', r'\1', path)
+        # add extra underscore to split correctly
+        path_string = re.sub(r'(:choice_\d+:_)', r'\1_', path_string)
+        path_names = path_string.split(self.nesting_connector)
+        el = self
+        for name in path_names[1:]:
+            el = el.get_subelement(name)
+        return el
+
+    def get_subelement(self, name):
+        for sub in self.subelements:
+            if sub.name == name:
+                return sub
+        return None
+
+    def get_mask(self):
+        result = ''
+        if self.inlines_needed():
+            result = self._get_name_with_inline_suffix(index=r'\d+')
+        else:
+            result = self.name
+        return result
+
+    def get_required_masks(self):
+        required = []
+        elements = [('', self)]
+        while elements:
+            prefix, el = elements.pop()
+            new_prefix = ('__' if prefix else '').join([prefix, el.get_mask()])
+            for sub in el.subelements:
+                if sub.required:
+                    if sub.subelements:
+                        elements.append((new_prefix, sub))
+                    else:
+                        required.append(new_prefix + '__' + sub.get_mask())
+        return required
+
+    @property
+    def required(self):
+        return self.min_occurs > 0
 
     def process_value(self, value):
         processed = value
@@ -379,7 +478,7 @@ class Element(object):
 
         return data
 
-    def required(self):
+    def get_class_required(self):
         return 'required' if 'choice' not in self.parent.name else ''
 
     def set_initial_data(self, data):
@@ -392,4 +491,4 @@ class Element(object):
     def _print_tree(self, level=0):
         print(level * '--', self.name)
         for el in self.subelements:
-            el.print_tree(level+1)
+            el._print_tree(level+1)
