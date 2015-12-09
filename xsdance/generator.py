@@ -271,7 +271,7 @@ class Generator(object):
         self._process_subnodes(node, new_el)
 
     def parse_choice(self, node, parent_el):
-        choice_name = '-choice_{}-'.format(self.choice_counter)
+        choice_name = ':choice_{}:'.format(self.choice_counter)
         self.choice_counter += 1
         choice_element = self.create_element(choice_name, parent_name=parent_el.name)
         parent_el.add_subelement(choice_element)
