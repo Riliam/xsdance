@@ -31,7 +31,7 @@ class Element(object):
         'data-gs-width': 12,
         'data-gs-height': 3,
     }
-    inlines_suffix_t = '_#{{{name}:{index}}}'
+    inlines_suffix_t = '_#{{{name}-{index}}}'
     inlines_emtpy_suffix_t = '_#{{{name}}}'
 
     def __init__(self, name, initial_data=None,
@@ -131,6 +131,7 @@ class Element(object):
                                                edit_mode=edit_mode,
                                                hidden_fields=hidden_fields,
                                                gridster_settings=gridster_settings)
+
         return content
 
     def _render_subelements_html(self, edit_mode=False, hidden_fields=None, gridster_settings=None):
@@ -160,7 +161,7 @@ class Element(object):
                 label_text=self.label_text or name,
                 required=self.get_class_required(),
             )
-            value = self.initial_data.get(self.name) or ''
+            value = '${{{}}}'.format(name) if self.initial_data else ''
             checked = ' checked' if self.is_checkbox and value else ''
             html_input = self.html_input.format(
                 edit_checkbox=self.get_edit_checkbox_input(edit_mode, hidden_fields),
@@ -241,7 +242,7 @@ class Element(object):
                 name=name)
 
         # so :choice_2: will be separated from its variants by '_' not '__'
-        name = re.sub(r'(:choice_[0-9]+:)_', r'\1', name)
+        name = re.sub(r'(-choice_[0-9]+-)_', r'\1', name)
 
         return name
 
@@ -333,7 +334,7 @@ class Element(object):
         # validate with validators
         for k, v in source.items():
             el = self.get_element_by_path(k)
-            cleaned[re.sub(r':choice_\d+:_', r'', k)], errors[k] = el.validate_atom(v)
+            cleaned[re.sub(r'-choice_\d+-_', r'', k)], errors[k] = el.validate_atom(v)
 
         # validate required fields
         required_masks = self.get_required_masks()
@@ -361,7 +362,7 @@ class Element(object):
         for inline in inline_elements:
             inputs = [x for x in cleaned.keys() if inline.name in x]
 
-            rx = re.compile(r'#{' + inline.name + ':(\d+)}')
+            rx = re.compile(r'#{' + inline.name + '-(\d+)}')
             groups = groupby(sorted(inputs), key=lambda x: rx.search(x).group(1))
             inlines_count = len(list(groups))
             if inlines_count > 2:
@@ -402,9 +403,9 @@ class Element(object):
 
     def get_element_by_path(self, path):
         # remove indexed inline marks
-        path_string = re.sub(r'([a-zA-Z0-9]+)_#{\1:[0-9]+}', r'\1', path)
+        path_string = re.sub(r'([a-zA-Z0-9]+)_#{\1-[0-9]+}', r'\1', path)
         # add extra underscore to split correctly
-        path_string = re.sub(r'(:choice_\d+:_)', r'\1_', path_string)
+        path_string = re.sub(r'(-choice_\d+-_)', r'\1_', path_string)
         path_names = path_string.split(self.nesting_connector)
         el = self
         for name in path_names[1:]:
