@@ -47,7 +47,7 @@ funcs = {
     'maxLength': (lambda r, v: len(unicode(v)) <= int(r),
                   'Length should be less than {rvalue}'),
 
-    'pattern': (lambda r, v: re.match(unicode(r), unicode(v)),
+    'pattern': (lambda r, v: bool(re.match(unicode(r), unicode(v))),
                 'Value should match {rvalue}'),
 
     'enumeration': (lambda r, v: v in r + ['', None],
