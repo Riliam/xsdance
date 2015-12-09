@@ -409,4 +409,4 @@ class Generator(object):
                 self.parse(node, el)
                 break
         else:
-            raise Generator.TypeNotFound
+            raise Generator.TypeNotFound('{} not found'.format(type_name))
