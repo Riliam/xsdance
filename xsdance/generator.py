@@ -255,6 +255,9 @@ class Generator(object):
         include_root = etree.parse(include_path).getroot()
         self.includes.append(include_root)
 
+    def parse_import(self, node, el):
+        self.parse_include(node, el)
+
     def parse_element(self, node, parent_el):
         new_el = self._get_element_from_cache_or_create(node, parent_el)
         parent_el.add_subelement(new_el)
@@ -392,8 +395,11 @@ class Generator(object):
                 self.parse(node, el)
 
     def _process_type_by_name(self, type_name, el):
+        if 'irs:' in type_name:
+            type_name = type_name.split('irs:')[-1]
         if 'xsd:' in type_name:
             type_name = type_name.split('xsd:')[-1]
+
         if type_name == 'anySimpleType':
             return
         simpleType_expr = './/xsd:simpleType[@name="{}"]'.format(type_name)
