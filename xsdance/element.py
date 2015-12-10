@@ -3,7 +3,7 @@ from __future__ import unicode_literals, print_function, division, absolute_impo
 from pprint import pprint  # NOQA
 from cgi import escape
 import re
-from collections import defaultdict
+from collections import defaultdict, OrderedDict
 from itertools import groupby
 
 from .utils import serialize_xml, serialize_json
@@ -525,6 +525,25 @@ class Element(object):
             for el in self.subelements:
                 el.set_initial_data(self.initial_data)
         return self
+
+    def get_ordered_dict_with_data(self, data):
+        value = data[self.name]
+        if isinstance(value, list):
+            return [self.get_ordered_dict_with_data({self.name: v}) for v in value]
+
+        if not isinstance(value, dict):
+            return value
+
+        ordata = OrderedDict()
+        subelements = list(self.subelements)
+        while subelements:
+            sub = subelements.pop(0)
+            if ':choice' in sub.name:
+                subelements = sub.subelements + subelements
+            if sub.name in value:
+                ordata[sub.name] = sub.get_ordered_dict_with_data(value)
+
+        return ordata
 
     def _print_tree(self, level=0):
         print(level * '--', self.name)
