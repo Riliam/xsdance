@@ -31,7 +31,7 @@ class Element(object):
         'data-gs-width': 12,
         'data-gs-height': 3,
     }
-    inlines_suffix_t = '_#{{{name}-{index}}}'
+    inlines_suffix_t = '_#{{{name}:{index}}}'
     inlines_emtpy_suffix_t = '_#{{{name}}}'
 
     def __init__(self, name, initial_data=None,
@@ -107,6 +107,20 @@ class Element(object):
     def initial_value(self):
         return self.initial_data[self.name]
 
+    @staticmethod
+    def get_distinct_inlines_count(name, data):
+        if not data:
+            return None
+
+        rx = re.compile('#{' + name + ':(\d)+}')
+
+        def grouping_key(x):
+            m = rx.search(x)
+            return (m.group(1) if m else None)
+
+        groups = list(groupby(sorted(data), key=grouping_key))
+        return len([g for g in groups if g[0]])
+
     def render_html(self, edit_mode=False, hidden_fields=None, gridster_settings=None):
         kwargs = {
             'edit_mode': edit_mode,
@@ -123,15 +137,29 @@ class Element(object):
             content = self._render_html_input_with_value(**kwargs)
 
         if self.inlines_needed() is not None:
-            inline_content = self._render_inline_content(content, gridster_settings=gridster_settings)
-            empty_item = self._render_empty_item(content, gridster_settings=gridster_settings)
-            content = self._wrap_with_inline_block_wrapper(inline_content, empty_item)
+            inlines_count = self.get_distinct_inlines_count(
+                self.name,
+                self.initial_data)
+            inline_content = self._render_inline_content(
+                content,
+                inlines_count=inlines_count,
+                gridster_settings=gridster_settings)
+            empty_item = self._render_empty_item(
+                content,
+                gridster_settings=gridster_settings)
+            content = self._wrap_with_inline_block_wrapper(
+                inline_content,
+                empty_item)
 
         content = self._wrap_with_item_wrapper(content,
                                                edit_mode=edit_mode,
                                                hidden_fields=hidden_fields,
                                                gridster_settings=gridster_settings)
-
+        if not self.parent:
+            for k, v in self.initial_data.items():
+                content = content.replace('[[{0}|checkbox]]'.format(k), ('checked' if v else ''))
+                content = content.replace('[[{0}]]'.format(k), '{}'.format(v))
+            # content = re.sub(r'\[\[.*\]\]', r'', content)
         return content
 
     def _render_subelements_html(self, edit_mode=False, hidden_fields=None, gridster_settings=None):
@@ -161,14 +189,14 @@ class Element(object):
                 label_text=self.label_text or name,
                 required=self.get_class_required(),
             )
-            value = '${{{}}}'.format(name) if self.initial_data else ''
-            checked = ' checked' if self.is_checkbox and value else ''
+            checkbox_ind = '|checkbox' if self.is_checkbox else ''
+            value = '[[{name}{checkbox_ind}]]'.format(name=name, checkbox_ind=checkbox_ind) if self.initial_data else ''
             html_input = self.html_input.format(
                 edit_checkbox=self.get_edit_checkbox_input(edit_mode, hidden_fields),
                 disabled=edit_mode and ' disabled' or '',
                 name=name,
                 value=value,
-                checked=checked,
+                checked=value,
             )
             result = self.html_input_wrapper.format(
                 label=html_label,
@@ -186,16 +214,20 @@ class Element(object):
             prefixed_name=self.prefixed_name())
         return result
 
-    def _render_inline_content(self, content, gridster_settings=None):
-        inlines_count = self.inlines_needed()
+    def _render_inline_content(self, content, inlines_count=None, gridster_settings=None):
+        min_inlines = 0 if inlines_count else 1
+        inlines_count = inlines_count or self.inlines_needed()
         inlines = ''
-        for i in range(1, inlines_count):
+        for i in range(min_inlines, inlines_count):
             item = content.replace(self._get_name_with_inline_suffix(),
                                    self._get_name_with_inline_suffix(index=i))
             item = self._wrap_with_html_inline_item_wrapper(item, gridster_settings=gridster_settings)
             inlines += item
-        content = self._wrap_with_html_inline_item_wrapper(content, noremove=False, gridster_settings=gridster_settings)
-        content = content + inlines
+        if min_inlines:
+            content = self._wrap_with_html_inline_item_wrapper(content, noremove=False, gridster_settings=gridster_settings)
+            content = content + inlines
+        else:
+            content = inlines
         return content
 
     def _render_empty_item(self, content, gridster_settings=None):
@@ -242,7 +274,7 @@ class Element(object):
                 name=name)
 
         # so :choice_2: will be separated from its variants by '_' not '__'
-        name = re.sub(r'(-choice_[0-9]+-)_', r'\1', name)
+        name = re.sub(r'(:choice_[0-9]+:)_', r'\1', name)
 
         return name
 
@@ -329,22 +361,28 @@ class Element(object):
 
     def validate_inputs(self, source):
         cleaned = {}
+        cleaned2 = {}
         errors = defaultdict(list)
 
         # validate with validators
         for k, v in source.items():
             el = self.get_element_by_path(k)
-            cleaned[re.sub(r'-choice_\d+-_', r'', k)], errors[k] = el.validate_atom(v)
+            processed = el.process_value(v)
+            cleaned[re.sub(r':choice_\d+:_', r'', k)] = processed
+            cleaned2[k] = processed
+            if processed:
+                errors[k] = el.validate_atom(processed)
 
         # validate required fields
         required_masks = self.get_required_masks()
         for k, v in cleaned.items():
+            required = False
             for mask in required_masks:
-                if re.match(mask, k) and cleaned[k]:
+                if re.match(mask, k):
+                    required = True
                     break
-            # loop's else
-            else:
-                errors[k] = errors[k] + [self.error_messages['required']]
+            if required and not cleaned.get(k, None):
+                errors[k] = [self.error_messages['required']] + errors[k]
 
         # validate choices
         choice_elements = self._get_choice_elements()
@@ -362,7 +400,7 @@ class Element(object):
         for inline in inline_elements:
             inputs = [x for x in cleaned.keys() if inline.name in x]
 
-            rx = re.compile(r'#{' + inline.name + '-(\d+)}')
+            rx = re.compile(r'#{' + inline.name + ':(\d+)}')
             groups = groupby(sorted(inputs), key=lambda x: rx.search(x).group(1))
             inlines_count = len(list(groups))
             if inlines_count > 2:
@@ -373,13 +411,12 @@ class Element(object):
                 errors[k] = errors[k] + [self.error_messages['min_occurs_violated'].format(inline.min_occurs)]
 
         errors = {k: v for k, v in errors.items() if v}
-        return cleaned, errors
+        return cleaned2, cleaned, errors
 
-    def validate_atom(self, value):
-        processed = self.process_value(value)
+    def validate_atom(self, processed):
         errors = map(lambda v: v(processed), self.validators)
         errors = filter(bool, errors)
-        return processed, errors
+        return errors
 
     def _get_choice_elements(self):
         choice_elements = []
@@ -403,9 +440,9 @@ class Element(object):
 
     def get_element_by_path(self, path):
         # remove indexed inline marks
-        path_string = re.sub(r'([a-zA-Z0-9]+)_#{\1-[0-9]+}', r'\1', path)
+        path_string = re.sub(r'([a-zA-Z0-9]+)_#{\1:[0-9]+}', r'\1', path)
         # add extra underscore to split correctly
-        path_string = re.sub(r'(-choice_\d+-_)', r'\1_', path_string)
+        path_string = re.sub(r'(:choice_\d+:_)', r'\1_', path_string)
         path_names = path_string.split(self.nesting_connector)
         el = self
         for name in path_names[1:]:
@@ -486,7 +523,7 @@ class Element(object):
         self.initial_data = data
         if data:
             for el in self.subelements:
-                el.set_initial_data(data.get(self.name))
+                el.set_initial_data(self.initial_data)
         return self
 
     def _print_tree(self, level=0):
