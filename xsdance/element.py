@@ -108,8 +108,8 @@ class Element(object):
         return self.initial_data[self.name]
 
     @staticmethod
-    def get_distinct_inlines_count(name, d):
-        if not d:
+    def get_distinct_inlines_count(name, data):
+        if not data:
             return None
 
         rx = re.compile('#{' + name + ':(\d)+}')
@@ -118,8 +118,8 @@ class Element(object):
             m = rx.search(x)
             return (m.group(1) if m else None)
 
-        groups = list(groupby(sorted(d), key=grouping_key))
-        return len(groups) - 1
+        groups = list(groupby(sorted(data), key=grouping_key))
+        return len([g for g in groups if g[0]])
 
     def render_html(self, edit_mode=False, hidden_fields=None, gridster_settings=None):
         kwargs = {
@@ -157,9 +157,9 @@ class Element(object):
                                                gridster_settings=gridster_settings)
         if not self.parent:
             for k, v in self.initial_data.items():
-                content = content.replace('value="[{}]"'.format(k),
-                                          'value="{}"'.format(v))
-        content = re.sub(r'value="\[.*\]"', r'value=""', content)
+                content = content.replace('[[{0}|checkbox]]'.format(k), ('checked' if v else ''))
+                content = content.replace('[[{0}]]'.format(k), '{}'.format(v))
+            # content = re.sub(r'\[\[.*\]\]', r'', content)
         return content
 
     def _render_subelements_html(self, edit_mode=False, hidden_fields=None, gridster_settings=None):
@@ -189,14 +189,14 @@ class Element(object):
                 label_text=self.label_text or name,
                 required=self.get_class_required(),
             )
-            value = '[{}]'.format(name) if self.initial_data else ''
-            checked = ' checked' if self.is_checkbox and value else ''
+            checkbox_ind = '|checkbox' if self.is_checkbox else ''
+            value = '[[{name}{checkbox_ind}]]'.format(name=name, checkbox_ind=checkbox_ind) if self.initial_data else ''
             html_input = self.html_input.format(
                 edit_checkbox=self.get_edit_checkbox_input(edit_mode, hidden_fields),
                 disabled=edit_mode and ' disabled' or '',
                 name=name,
                 value=value,
-                checked=checked,
+                checked=value,
             )
             result = self.html_input_wrapper.format(
                 label=html_label,
@@ -215,15 +215,19 @@ class Element(object):
         return result
 
     def _render_inline_content(self, content, inlines_count=None, gridster_settings=None):
+        min_inlines = 0 if inlines_count else 1
         inlines_count = inlines_count or self.inlines_needed()
         inlines = ''
-        for i in range(1, inlines_count):
+        for i in range(min_inlines, inlines_count):
             item = content.replace(self._get_name_with_inline_suffix(),
                                    self._get_name_with_inline_suffix(index=i))
             item = self._wrap_with_html_inline_item_wrapper(item, gridster_settings=gridster_settings)
             inlines += item
-        content = self._wrap_with_html_inline_item_wrapper(content, noremove=False, gridster_settings=gridster_settings)
-        content = content + inlines
+        if min_inlines:
+            content = self._wrap_with_html_inline_item_wrapper(content, noremove=False, gridster_settings=gridster_settings)
+            content = content + inlines
+        else:
+            content = inlines
         return content
 
     def _render_empty_item(self, content, gridster_settings=None):
@@ -357,6 +361,7 @@ class Element(object):
 
     def validate_inputs(self, source):
         cleaned = {}
+        cleaned2 = {}
         errors = defaultdict(list)
 
         # validate with validators
@@ -364,6 +369,7 @@ class Element(object):
             el = self.get_element_by_path(k)
             processed = el.process_value(v)
             cleaned[re.sub(r':choice_\d+:_', r'', k)] = processed
+            cleaned2[k] = processed
             if processed:
                 errors[k] = el.validate_atom(processed)
 
@@ -405,7 +411,7 @@ class Element(object):
                 errors[k] = errors[k] + [self.error_messages['min_occurs_violated'].format(inline.min_occurs)]
 
         errors = {k: v for k, v in errors.items() if v}
-        return cleaned, errors
+        return cleaned2, cleaned, errors
 
     def validate_atom(self, processed):
         errors = map(lambda v: v(processed), self.validators)
