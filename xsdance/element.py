@@ -364,7 +364,17 @@ class Element(object):
         cleaned2 = {}
         errors = defaultdict(list)
 
-        # validate with validators
+        result = self._validate_with_validators(source, cleaned2, cleaned, errors)
+        (cleaned2, cleaned, errors) = result
+
+        errors = self._validate_required_fields(cleaned, errors)
+        errors = self._validate_choices(cleaned, errors)
+        errors = self._validate_inlines(cleaned, errors)
+
+        errors = {k: v for k, v in errors.items() if v}
+        return cleaned2, cleaned, errors
+
+    def _validate_with_validators(self, source, cleaned2, cleaned, errors):
         for k, v in source.items():
             el = self.get_element_by_path(k)
             processed = el.process_value(v)
@@ -372,8 +382,9 @@ class Element(object):
             cleaned2[k] = processed
             if processed:
                 errors[k] = el.validate_atom(processed)
+        return cleaned2, cleaned, errors
 
-        # validate required fields
+    def _validate_required_fields(self, cleaned, errors):
         required_masks = self.get_required_masks()
         for k, v in cleaned.items():
             required = False
@@ -383,8 +394,9 @@ class Element(object):
                     break
             if required and not cleaned.get(k, None):
                 errors[k] = [self.error_messages['required']] + errors[k]
+        return errors
 
-        # validate choices
+    def _validate_choices(self, cleaned, errors):
         choice_elements = self._get_choice_elements()
         for ch in choice_elements:
             inputs = [k for k in cleaned.keys() if ch.name in k]
@@ -394,8 +406,9 @@ class Element(object):
                 if len([k for k in group_input_keys if cleaned(k)]) > ch.max_occurs:
                     k = prefix + ch.name
                     errors[k] = errors[k] + [self.error_messages['too_many_choices']]
+        return errors
 
-        # validate inlines count
+    def _validate_inlines(self, cleaned, errors):
         inline_elements = self._get_inline_elements()
         for inline in inline_elements:
             inputs = [x for x in cleaned.keys() if inline.name in x]
@@ -409,9 +422,7 @@ class Element(object):
             if inlines_count < inline.min_occurs:
                 k = inline.prefixed_name()
                 errors[k] = errors[k] + [self.error_messages['min_occurs_violated'].format(inline.min_occurs)]
-
-        errors = {k: v for k, v in errors.items() if v}
-        return cleaned2, cleaned, errors
+        return errors
 
     def validate_atom(self, processed):
         errors = map(lambda v: v(processed), self.validators)
@@ -469,12 +480,10 @@ class Element(object):
         while elements:
             prefix, el = elements.pop()
             new_prefix = ('__' if prefix else '').join([prefix, el.get_mask()])
+            if el.required:
+                required.append(new_prefix)
             for sub in el.subelements:
-                if sub.required:
-                    if sub.subelements:
-                        elements.append((new_prefix, sub))
-                    else:
-                        required.append(new_prefix + '__' + sub.get_mask())
+                elements.append((new_prefix, sub))
         return required
 
     @property
