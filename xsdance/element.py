@@ -108,18 +108,50 @@ class Element(object):
         return self.initial_data[self.name]
 
     @staticmethod
-    def get_distinct_inlines_count(name, data):
+    def get_distinct_inlines_count(name, data, count=True,):
         if not data:
             return None
 
-        rx = re.compile('#{' + name + ':(\d)+}')
+        rx = re.compile('#{' + name + ':(\d+)}')
 
         def grouping_key(x):
             m = rx.search(x)
             return (m.group(1) if m else None)
 
         groups = list(groupby(sorted(data), key=grouping_key))
-        return len([g for g in groups if g[0]])
+        indeces = [g[0] for g in groups if g[0]]
+        if count:
+            result = len(indeces)
+        else:
+            result = indeces
+
+        return result
+
+    def get_all_checkboxes(self, data, acc_list=None):
+        acc_list = acc_list or ['{0}__'.format(self.name)]
+
+        names = []
+        for sub in self.subelements:
+            # following cases are all mutually exclusive, the second and the third
+            # are here to eliminate nested if's
+
+            if sub.is_checkbox:
+                names += ['{0}{1}'.format(p, sub.name) for p in acc_list]
+
+            if sub.subelements and sub.inlines_needed is not None:
+                names += sub.get_all_checkboxes(
+                    data,
+                    ['{0}{1}__'.format(p, sub._get_name_with_inline_suffix(index=i))
+                     for p in acc_list
+                     for i in self.get_distinct_inlines_count(sub.name, data.keys(), count=False)])
+
+            if sub.subelements and sub.inlines_needed is None:
+                names += sub.get_all_checkboxes(
+                    data,
+                    ['{0}{1}__'.format(p, sub.name)
+                     for p in acc_list])
+
+        return names
 
     def render_html(self, edit_mode=False, hidden_fields=None, gridster_settings=None):
         kwargs = {
@@ -139,7 +171,8 @@ class Element(object):
         if self.inlines_needed() is not None:
             inlines_count = self.get_distinct_inlines_count(
                 self.name,
-                self.initial_data)
+                self.initial_data,
+                count=True)
             inline_content = self._render_inline_content(
                 content,
                 inlines_count=inlines_count,
@@ -387,6 +420,11 @@ class Element(object):
                 errors[k] = el.validate_atom(processed)
         return cleaned, errors
 
+    def validate_atom(self, processed):
+        errors = map(lambda v: v(processed), self.validators)
+        errors = filter(bool, errors)
+        return errors
+
     def _validate_required_fields(self, cleaned, errors, hidden_fields_masks):
         required_masks = self.get_required_masks(hidden_fields_masks)
         for k, v in cleaned.items():
@@ -425,11 +463,6 @@ class Element(object):
             if inlines_count < inline.min_occurs:
                 k = inline.prefixed_name()
                 errors[k] = errors[k] + [self.error_messages['min_occurs_violated'].format(inline.min_occurs)]
-        return errors
-
-    def validate_atom(self, processed):
-        errors = map(lambda v: v(processed), self.validators)
-        errors = filter(bool, errors)
         return errors
 
     def _get_choice_elements(self, hidden_fields):
