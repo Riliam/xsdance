@@ -6,6 +6,8 @@ from collections import defaultdict
 import re
 import json
 
+from .parse_inputs import parse_inputs
+
 from lxml import etree
 
 
