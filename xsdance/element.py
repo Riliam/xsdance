@@ -7,7 +7,6 @@ from collections import defaultdict, OrderedDict
 from itertools import groupby
 
 from .utils import serialize_xml, serialize_json
-from .parse_inputs import parse_inputs
 
 
 class ValueRequiredError(BaseException):
@@ -160,7 +159,7 @@ class Element(object):
             for k, v in self.initial_data.items():
                 content = content.replace('[[{0}|checkbox]]'.format(k), ('checked' if v else ''))
                 content = content.replace('[[{0}]]'.format(k), '{}'.format(v))
-            # content = re.sub(r'\[\[.*\]\]', r'', content)
+            content = re.sub(r'\[\[.*\]\]', r'', content)
         return content
 
     def _render_subelements_html(self, edit_mode=False, hidden_fields=None, gridster_settings=None):
@@ -225,7 +224,10 @@ class Element(object):
             item = self._wrap_with_html_inline_item_wrapper(item, gridster_settings=gridster_settings)
             inlines += item
         if min_inlines:
-            content = self._wrap_with_html_inline_item_wrapper(content, noremove=False, gridster_settings=gridster_settings)
+            content = self._wrap_with_html_inline_item_wrapper(
+                content,
+                noremove=False,
+                gridster_settings=gridster_settings)
             content = content + inlines
         else:
             content = inlines
@@ -331,6 +333,7 @@ class Element(object):
         return edit_checkbox
 
     def get_gridster_settings_attrs(self, gridster_settings, inline_wrapper=False):
+        assert isinstance(gridster_settings, list), 'gridster_settings should be instance of list'
         gridster_settings = gridster_settings or []
         process_inlines = inline_wrapper
         prefixed_name = self.prefixed_name(process_inlines=process_inlines)
@@ -360,15 +363,17 @@ class Element(object):
             raise Element.ValueRequiredError
         return serialize_json(self.cleaned_data())
 
-    def validate_inputs(self, source):
+    def validate_inputs(self, source, hidden_fields=None):
+        hidden_fields = []
+        hidden_fields_masks = [re.sub(r':\d+', r':\d+', f) for f in hidden_fields]
         cleaned = {}
         errors = defaultdict(list)
 
         cleaned, errors = self._validate_with_validators(source, cleaned, errors)
 
-        errors = self._validate_required_fields(cleaned, errors)
-        errors = self._validate_choices(cleaned, errors)
-        errors = self._validate_inlines(cleaned, errors)
+        errors = self._validate_required_fields(cleaned, errors, hidden_fields_masks)
+        errors = self._validate_choices(cleaned, errors, hidden_fields)
+        errors = self._validate_inlines(cleaned, errors, hidden_fields)
 
         errors = {k: v for k, v in errors.items() if v}
         return cleaned, errors
@@ -382,8 +387,8 @@ class Element(object):
                 errors[k] = el.validate_atom(processed)
         return cleaned, errors
 
-    def _validate_required_fields(self, cleaned, errors):
-        required_masks = self.get_required_masks()
+    def _validate_required_fields(self, cleaned, errors, hidden_fields_masks):
+        required_masks = self.get_required_masks(hidden_fields_masks)
         for k, v in cleaned.items():
             required = False
             for mask in required_masks:
@@ -394,8 +399,8 @@ class Element(object):
                 errors[k] = [self.error_messages['required']] + errors[k]
         return errors
 
-    def _validate_choices(self, cleaned, errors):
-        choice_elements = self._get_choice_elements()
+    def _validate_choices(self, cleaned, errors, hidden_fields):
+        choice_elements = self._get_choice_elements(hidden_fields)
         for ch in choice_elements:
             inputs = [k for k in cleaned.keys() if ch.name in k]
 
@@ -406,8 +411,8 @@ class Element(object):
                     errors[k] = errors[k] + [self.error_messages['too_many_choices']]
         return errors
 
-    def _validate_inlines(self, cleaned, errors):
-        inline_elements = self._get_inline_elements()
+    def _validate_inlines(self, cleaned, errors, hidden_fields):
+        inline_elements = self._get_inline_elements(hidden_fields)
         for inline in inline_elements:
             inputs = [x for x in cleaned.keys() if inline.name in x]
 
@@ -427,22 +432,22 @@ class Element(object):
         errors = filter(bool, errors)
         return errors
 
-    def _get_choice_elements(self):
+    def _get_choice_elements(self, hidden_fields):
         choice_elements = []
         elements = [self]
         while elements:
             el = elements.pop()
-            if 'choice' in el.name:
+            if 'choice' in el.name and el.prefixed_name() not in hidden_fields:
                 choice_elements.append(el)
             elements.extend(el.subelements or [])
         return choice_elements
 
-    def _get_inline_elements(self):
+    def _get_inline_elements(self, hidden_fields):
         inline_elements = []
         elements = [self]
         while elements:
             el = elements.pop()
-            if el.inlines_needed():
+            if el.inlines_needed() not in hidden_fields:
                 inline_elements.append(el)
             elements.extend(el.subelements or [])
         return inline_elements
@@ -471,13 +476,13 @@ class Element(object):
             result = self.name
         return result
 
-    def get_required_masks(self):
+    def get_required_masks(self, hidden_fields_masks):
         required = []
         elements = [('', self)]
         while elements:
             prefix, el = elements.pop()
             new_prefix = ('__' if prefix else '').join([prefix, el.get_mask()])
-            if el.required:
+            if el.required and new_prefix not in hidden_fields_masks:
                 required.append('^{}$'.format(new_prefix))
             for sub in el.subelements:
                 elements.append((new_prefix, sub))
