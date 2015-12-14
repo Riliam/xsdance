@@ -364,7 +364,7 @@ class Element(object):
         return serialize_json(self.cleaned_data())
 
     def validate_inputs(self, source, hidden_fields=None):
-        hidden_fields = []
+        hidden_fields = hidden_fields or []
         hidden_fields_masks = [re.sub(r':\d+', r':\d+', f) for f in hidden_fields]
         cleaned = {}
         errors = defaultdict(list)
@@ -447,7 +447,7 @@ class Element(object):
         elements = [self]
         while elements:
             el = elements.pop()
-            if el.inlines_needed() not in hidden_fields:
+            if el.inlines_needed() and el.prefixed_name() not in hidden_fields:
                 inline_elements.append(el)
             elements.extend(el.subelements or [])
         return inline_elements
