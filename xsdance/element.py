@@ -7,6 +7,7 @@ from collections import defaultdict, OrderedDict
 from itertools import groupby
 
 from .utils import serialize_xml, serialize_json
+from .parse_inputs import parse_inputs
 
 
 class ValueRequiredError(BaseException):
@@ -361,28 +362,25 @@ class Element(object):
 
     def validate_inputs(self, source):
         cleaned = {}
-        cleaned2 = {}
         errors = defaultdict(list)
 
-        result = self._validate_with_validators(source, cleaned2, cleaned, errors)
-        (cleaned2, cleaned, errors) = result
+        cleaned, errors = self._validate_with_validators(source, cleaned, errors)
 
         errors = self._validate_required_fields(cleaned, errors)
         errors = self._validate_choices(cleaned, errors)
         errors = self._validate_inlines(cleaned, errors)
 
         errors = {k: v for k, v in errors.items() if v}
-        return cleaned2, cleaned, errors
+        return cleaned, errors
 
-    def _validate_with_validators(self, source, cleaned2, cleaned, errors):
+    def _validate_with_validators(self, source, cleaned, errors):
         for k, v in source.items():
             el = self.get_element_by_path(k)
             processed = el.process_value(v)
-            cleaned[re.sub(r':choice_\d+:_', r'', k)] = processed
-            cleaned2[k] = processed
+            cleaned[k] = processed
             if processed:
                 errors[k] = el.validate_atom(processed)
-        return cleaned2, cleaned, errors
+        return cleaned, errors
 
     def _validate_required_fields(self, cleaned, errors):
         required_masks = self.get_required_masks()
@@ -403,7 +401,7 @@ class Element(object):
 
             for group in groupby(sorted(inputs), key=lambda x: x.split(ch.name)[0]):
                 prefix, group_input_keys = group
-                if len([k for k in group_input_keys if cleaned(k)]) > ch.max_occurs:
+                if len([k for k in group_input_keys if cleaned.get(k)]) > ch.max_occurs:
                     k = prefix + ch.name
                     errors[k] = errors[k] + [self.error_messages['too_many_choices']]
         return errors
@@ -467,7 +465,6 @@ class Element(object):
         return None
 
     def get_mask(self):
-        result = ''
         if self.inlines_needed():
             result = self._get_name_with_inline_suffix(index=r'\d+')
         else:
@@ -481,7 +478,7 @@ class Element(object):
             prefix, el = elements.pop()
             new_prefix = ('__' if prefix else '').join([prefix, el.get_mask()])
             if el.required:
-                required.append(new_prefix)
+                required.append('^{}$'.format(new_prefix))
             for sub in el.subelements:
                 elements.append((new_prefix, sub))
         return required
@@ -526,7 +523,7 @@ class Element(object):
         return data
 
     def get_class_required(self):
-        return 'required' if 'choice' not in self.parent.name else ''
+        return 'required' if self.required else ''
 
     def set_initial_data(self, data):
         self.initial_data = data
