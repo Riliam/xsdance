@@ -53,7 +53,9 @@ def to_dict_with_lists(d):
 
 
 def transform_name(name):
-    return re.sub(r'_#{[a-zA-Z0-9]+:(\d+)}', r'__\1', name)
+    name = re.sub(r'_#{[a-zA-Z0-9]+:(\d+)}', r'__\1', name)
+    name = re.sub(r':choice_\d+:_', r'', name)
+    return name
 
 
 def parse_inputs(inputs, name_split_sym='__'):

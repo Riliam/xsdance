@@ -8,8 +8,6 @@ import json
 
 from lxml import etree
 
-from xsdance.parse_inputs import parse_inputs  # NOQA
-
 
 tree = lambda: defaultdict(tree)
 tree_to_dict = lambda t: json.loads(json.dumps(t))
