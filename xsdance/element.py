@@ -127,7 +127,7 @@ class Element(object):
 
         return result
 
-    def get_all_checkboxes(self, data, acc_list=None):
+    def get_all_checkboxes(self, data, acc_list=None, hidden_fields=None):
         acc_list = acc_list or ['{0}__'.format(self.name)]
 
         names = []
@@ -138,19 +138,22 @@ class Element(object):
             if sub.is_checkbox:
                 names += ['{0}{1}'.format(p, sub.name) for p in acc_list]
 
-            if sub.subelements and sub.inlines_needed is not None:
+            if sub.subelements and sub.inlines_needed() is not None:
                 names += sub.get_all_checkboxes(
                     data,
                     ['{0}{1}__'.format(p, sub._get_name_with_inline_suffix(index=i))
                      for p in acc_list
                      for i in self.get_distinct_inlines_count(sub.name, data.keys(), count=False)])
 
-            if sub.subelements and sub.inlines_needed is None:
+            if sub.subelements and sub.inlines_needed() is None:
                 names += sub.get_all_checkboxes(
                     data,
-                    ['{0}{1}__'.format(p, sub.name)
+                    ['{0}{1}{2}'.format(p, sub.name, '_' if 'choice' in sub.name else '__')
                      for p in acc_list])
 
+        if hidden_fields:
+            assert isinstance(hidden_fields, list)
+            names = list(set(names) - set(hidden_fields))
         return names
 
     def render_html(self, edit_mode=False, hidden_fields=None, gridster_settings=None):
@@ -397,6 +400,10 @@ class Element(object):
         return serialize_json(self.cleaned_data())
 
     def validate_inputs(self, source, hidden_fields=None):
+        checkbox_names = self.get_all_checkboxes(source, hidden_fields=hidden_fields)
+        for chb in checkbox_names:
+            source[chb] = source.get(chb, '')
+
         hidden_fields = hidden_fields or []
         hidden_fields_masks = [re.sub(r':\d+', r':\d+', f) for f in hidden_fields]
         cleaned = {}

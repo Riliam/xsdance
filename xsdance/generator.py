@@ -76,7 +76,8 @@ class Generator(object):
         <input type="checkbox" name="{{name}}" id="{{name}}" value="{value}"{{disabled}} {{checked}}/>
     '''
     default_html_select = '''
-        <select {multiple} name="{{name}}"{{disabled}}>
+        <select {multiple} name="{{name}}" {{disabled}}>
+            <option></option>'
             {options}
         </select>
     '''
