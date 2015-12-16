@@ -195,8 +195,9 @@ class Element(object):
         if not self.parent:
             for k, v in self.initial_data.items():
                 content = content.replace('[[{0}|checkbox]]'.format(k), ('checked' if v else ''))
+                content = re.sub('\[\[{0}\|{1}\]\]'.format(k, v), 'selected="selected"', content)
                 content = content.replace('[[{0}]]'.format(k), '{}'.format(v))
-            content = re.sub(r'\[\[.*\]\]', r'', content)
+            content = re.sub(r'\[\[.*?\]\]', r'', content)
         return content
 
     def _render_subelements_html(self, edit_mode=False, hidden_fields=None, gridster_settings=None):
@@ -227,14 +228,18 @@ class Element(object):
                 required=self.get_class_required(),
             )
             checkbox_ind = '|checkbox' if self.is_checkbox else ''
-            value = '[[{name}{checkbox_ind}]]'.format(name=name, checkbox_ind=checkbox_ind) if self.initial_data else ''
+            value = '[[{name}{ind}]]'.format(name=name, ind=checkbox_ind) if self.initial_data else ''
             html_input = self.html_input.format(
                 edit_checkbox=self.get_edit_checkbox_input(edit_mode, hidden_fields),
-                disabled=edit_mode and ' disabled' or '',
+                disabled=edit_mode and 'disabled' or '',
                 name=name,
                 value=value,
                 checked=value,
+                selected=value,
             )
+            html_input = re.sub(r'<(.*?)(value="(.*?)")(.*?)\[\[(.*?)\]\](.*?)>',
+                                r'<\1\2\4\6 [[\5|\3]]>',
+                                html_input)
             result = self.html_input_wrapper.format(
                 label=html_label,
                 html_input=html_input,

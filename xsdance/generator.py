@@ -70,18 +70,18 @@ class Generator(object):
     '''
 
     default_html_input = '''
-        <input type="text" id="{name}" name="{name}" value="{value}"{disabled}/>
+        <input type="text" id="{name}" name="{name}" value="{value}" {disabled}/>
     '''
     default_html_checkbox = '''
-        <input type="checkbox" name="{{name}}" id="{{name}}" value="{value}"{{disabled}} {{checked}}/>
+        <input type="checkbox" name="{{name}}" id="{{name}}" value="{value}" {{disabled}} {{checked}}/>
     '''
     default_html_select = '''
         <select {multiple} name="{{name}}" {{disabled}}>
-            <option></option>'
+            <option></option>
             {options}
         </select>
     '''
-    default_html_option = '<option value="{value}">{text}</option>'
+    default_html_option = '<option value="{value}" {{selected}}>{text}</option>'
     default_html_edit_checkbox = '''
         <input id="ch_hide_{name}" name="ch_hide_{name}" type="checkbox" {checked} class="hide unstyled-field hidden-block"/>
     '''  # NOQA
