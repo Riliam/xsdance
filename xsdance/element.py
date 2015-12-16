@@ -481,7 +481,7 @@ class Element(object):
             rx = re.compile(r'#{' + inline.name + ':(\d+)}')
             groups = groupby(sorted(inputs), key=lambda x: rx.search(x).group(1))
             inlines_count = len(list(groups))
-            if inlines_count > 2:
+            if inlines_count > inline.max_occurs:
                 k = inline.prefixed_name()
                 errors[k] = errors[k] + [self.error_messages['max_occurs_violated'].format(inline.max_occurs)]
             if inlines_count < inline.min_occurs:
