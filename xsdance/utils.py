@@ -6,7 +6,7 @@ from collections import defaultdict
 import re
 import json
 
-from .parse_inputs import parse_inputs
+from .parse_inputs import parse_inputs  # NOQA
 
 from lxml import etree
 
@@ -166,7 +166,7 @@ class Validator:
 
     def __init__(self, rname, rvalue):
         self.rvalue = rvalue
-        self.test_func, self.error_message = funcs[rname]
+        self.test_func, self.error_message = funcs.get(rname, (lambda r, x: None, ''))
 
         if rname == 'pattern':
             self.error_message = regex_messages.get(rvalue, 'Invalid value')
