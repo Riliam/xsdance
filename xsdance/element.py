@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals, print_function, division, absolute_import  # NOQA
 from pprint import pprint  # NOQA
+import copy
 from cgi import escape
 import re
 from collections import defaultdict, OrderedDict
@@ -368,6 +369,15 @@ class Element(object):
                 )
         return edit_checkbox
 
+    def get_gridster_default_settings(self):
+        y = 0
+        if self.parent:
+            y = self.parent.subelements.index(self)
+        settings = copy.deepcopy(self.gridster_default_settings)
+        default_h = self.gridster_default_settings['data-gs-height']
+        settings['data-gs-y'] = y * default_h
+        return settings
+
     def get_gridster_settings_attrs(self, gridster_settings, inline_wrapper=False):
         assert isinstance(gridster_settings, list), 'gridster_settings should be instance of list'
         gridster_settings = gridster_settings or []
@@ -375,9 +385,11 @@ class Element(object):
         prefixed_name = self.prefixed_name(process_inlines=process_inlines)
         settings = [s for s in gridster_settings
                     if s.get('prefixed_name', None) == prefixed_name]
-        settings = settings[0] if settings else self.gridster_default_settings
-        return ' '.join('='.join([k, '"{}"'.format(v)]) for k, v in settings.items()
-                        if k.startswith('data-gs-'))
+        settings = settings[0] if settings else self.get_gridster_default_settings()
+        settings_attrs = ' '.join('='.join([k, '"{}"'.format(v)])
+                                  for k, v in settings.items()
+                                  if k.startswith('data-gs-'))
+        return settings_attrs
 
     def get_help_text_html(self):
         result = ''
@@ -459,7 +471,7 @@ class Element(object):
     def _validate_inlines(self, cleaned, errors, hidden_fields):
         inline_elements = self._get_inline_elements(hidden_fields)
         for inline in inline_elements:
-            inputs = [x for x in cleaned.keys() if inline.name in x]
+            inputs = [x for x in cleaned.keys() if '{0}_#{{'.format(inline.name) in x]
 
             rx = re.compile(r'#{' + inline.name + ':(\d+)}')
             groups = groupby(sorted(inputs), key=lambda x: rx.search(x).group(1))
