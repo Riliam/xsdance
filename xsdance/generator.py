@@ -179,6 +179,7 @@ class Generator(object):
         self.nsmap = {}
 
         self.includes = []
+        self.included_files = []
         self.root = None
         self.choice_counter = 0
 
@@ -250,11 +251,20 @@ class Generator(object):
                                skip=['simpleType', 'complexType'])
         return schema
 
-    def parse_include(self, node, el):
-        path = node.attrib['schemaLocation']
-        include_path = x.full_path_of_included_schema(self.filepath, path)
-        include_root = etree.parse(include_path).getroot()
-        self.includes.append(include_root)
+    def parse_include(self, node=None, el=None, include_path=None):
+        include_path = include_path\
+            or x.full_path_of_included_schema(self.filepath, node.attrib['schemaLocation'])
+
+        if include_path not in self.included_files:
+            include_root = etree.parse(include_path).getroot()
+            self.includes.append(include_root)
+            self.included_files.append(include_path)
+
+            nsmap = {k: v for k, v in include_root.nsmap.items() if k}
+            include_includes = [x.full_path_of_included_schema(include_path, e.attrib['schemaLocation'])
+                                for e in include_root.xpath('//xsd:include', namespaces=nsmap)]
+            for include_include_path in include_includes:
+                self.parse_include(include_path=include_include_path, el=el)
 
     def parse_import(self, node, el):
         self.parse_include(node, el)
