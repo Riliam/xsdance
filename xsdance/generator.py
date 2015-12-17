@@ -124,6 +124,7 @@ class Generator(object):
               {edit_checkbox}
               {content}
               {inline_buttons}
+              <div class="error" id="{prefixed_name}"></div>
           </div>
         </div>
     '''
@@ -240,7 +241,9 @@ class Generator(object):
             all_kwargs_dict['html_parent_element_wrapper'] = '''
                 {content}
             '''
-        return self.element_class(*args, **all_kwargs_dict)
+        el = self.element_class(*args, **all_kwargs_dict)
+        el.UNBOUNDED = self.UNBOUNDED
+        return el
 
     def run(self, xsd_filepath):
         self.filepath = xsd_filepath

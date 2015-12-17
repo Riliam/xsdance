@@ -470,7 +470,20 @@ class Element(object):
                 prefix, group_input_keys = group
                 if len([k for k in group_input_keys if cleaned.get(k)]) > ch.max_occurs:
                     k = prefix + ch.name
-                    errors[k] = errors[k] + [self.error_messages['too_many_choices']]
+                    elements_s = ', '.join(['\'{0}\''.format(e.label_text) for e in ch.subelements])
+                    if ch.min_occurs == ch.max_occurs:
+                        message = 'Exactly {min}'
+                    elif ch.max_occurs == ch.UNBOUNDED:
+                        message = '{min} or more'
+                    elif ch.min_occurs == 0:
+                        message = 'Up to {max}'
+                    else:
+                        message = ('{min} to {max}')
+                    message = (message + ' of the these boxes should be filled: {boxes}').format(
+                        min=ch.min_occurs,
+                        max=ch.max_occurs,
+                        boxes=elements_s)
+                    errors[k] = errors[k] + [message]
         return errors
 
     def _validate_inlines(self, cleaned, errors, hidden_fields):
