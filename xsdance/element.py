@@ -129,32 +129,32 @@ class Element(object):
         return result
 
     def get_all_checkboxes(self, data, acc_list=None, hidden_fields=None):
+        hidden_fields = hidden_fields or []
         acc_list = acc_list or ['{0}__'.format(self.name)]
 
         names = []
         for sub in self.subelements:
             # following cases are all mutually exclusive, the second and the third
             # are here to eliminate nested if's
+            if sub.prefixed_name() not in hidden_fields:
 
-            if sub.is_checkbox:
-                names += ['{0}{1}'.format(p, sub.name) for p in acc_list]
+                if sub.is_checkbox:
+                    names += ['{0}{1}'.format(p, sub.name) for p in acc_list]
 
-            if sub.subelements and sub.inlines_needed() is not None:
-                names += sub.get_all_checkboxes(
-                    data,
-                    ['{0}{1}__'.format(p, sub._get_name_with_inline_suffix(index=i))
-                     for p in acc_list
-                     for i in self.get_distinct_inlines_count(sub.name, data.keys(), count=False)])
+                if sub.subelements and sub.inlines_needed() is not None:
+                    names += sub.get_all_checkboxes(
+                        data,
+                        ['{0}{1}__'.format(p, sub._get_name_with_inline_suffix(index=i))
+                         for p in acc_list
+                         for i in self.get_distinct_inlines_count(sub.name, data.keys(), count=False)],
+                        hidden_fields=hidden_fields)
 
-            if sub.subelements and sub.inlines_needed() is None:
-                names += sub.get_all_checkboxes(
-                    data,
-                    ['{0}{1}{2}'.format(p, sub.name, '_' if 'choice' in sub.name else '__')
-                     for p in acc_list])
-
-        if hidden_fields:
-            assert isinstance(hidden_fields, list)
-            names = list(set(names) - set(hidden_fields))
+                if sub.subelements and sub.inlines_needed() is None:
+                    names += sub.get_all_checkboxes(
+                        data,
+                        ['{0}{1}{2}'.format(p, sub.name, '_' if 'choice' in sub.name else '__')
+                         for p in acc_list],
+                        hidden_fields=hidden_fields)
         return names
 
     def render_html(self, edit_mode=False, hidden_fields=None, gridster_settings=None):
@@ -417,14 +417,14 @@ class Element(object):
         return serialize_json(self.cleaned_data())
 
     def validate_inputs(self, source, hidden_fields=None):
-        checkbox_names = self.get_all_checkboxes(source, hidden_fields=hidden_fields)
-        for chb in checkbox_names:
-            source[chb] = source.get(chb, '')
-
         hidden_fields = hidden_fields or []
         hidden_fields_masks = [re.sub(r':\d+', r':\d+', f) for f in hidden_fields]
         cleaned = {}
         errors = defaultdict(list)
+
+        checkbox_names = self.get_all_checkboxes(source, hidden_fields=hidden_fields)
+        for chb in checkbox_names:
+            source[chb] = source.get(chb, '')
 
         cleaned, errors = self._validate_with_validators(source, cleaned, errors)
 

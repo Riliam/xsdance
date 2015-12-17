@@ -62,6 +62,16 @@ class Generator(object):
     UNBOUNDED = 999
     TOP_LEVEL_ELEMENT_NAME = 'schema'
 
+    DT_FORMAT = {
+        'DateType': 'YYYY-MM-DD',
+        'YearMonthType': 'YYYY-MM',
+        'TaxYearEndMonthDtType': 'YYMM',
+        'MonthType': 'MM',
+        'MonthDayType': 'MM-DD',
+        'QuarterEndDateType': 'YYYY-MM-DD',
+        'YearType': 'YYYY',
+    }
+
     default_html_label = '''
         <label for="{name}" class="{required}">{label_text}</label>
     '''
@@ -71,6 +81,22 @@ class Generator(object):
 
     default_html_input = '''
         <input type="text" id="{name}" name="{name}" value="{value}" {disabled}/>
+    '''
+    default_html_datetime_picker = '''
+        <div class="input-group date date-field">
+
+             <input type="text"
+                class="form-control"
+                id="{{name}}"
+                name="{{name}}"
+                value="{{value}}"
+                {{disabled}}
+                data-date-format="{date_format}">
+
+             <span class="input-group-addon">
+                 <i class="icon-calendar"></i>
+             </span>
+        </div>
     '''
     default_html_checkbox = '''
         <input type="checkbox" name="{{name}}" id="{{name}}" value="{value}" {{disabled}} {{checked}}/>
@@ -153,6 +179,7 @@ class Generator(object):
                  html_help=default_html_help,
 
                  html_input=default_html_input,
+                 html_datetime_picker=default_html_datetime_picker,
                  html_checkbox=default_html_checkbox,
                  html_select=default_html_select,
                  html_option=default_html_option,
@@ -170,6 +197,7 @@ class Generator(object):
         self.element_class = element_class
         self.primitive_types_path = primitive_types_path
 
+        self.html_datetime_picker = html_datetime_picker
         self.html_checkbox = html_checkbox
         self.html_select = html_select
         self.html_option = html_option
@@ -368,7 +396,7 @@ class Generator(object):
         if enum_items:
             if len(enum_items) == 1:
                 value = enum_items[0]
-                html_input = self.html_checkbox.format(value=value)  # NOQA
+                html_input = self.html_checkbox.format(value=value)
 
                 el.html_input = html_input
                 el.add_processor(CheckboxProcessor(value))
@@ -410,6 +438,14 @@ class Generator(object):
             type_name = type_name.split('irs:')[-1]
         if 'xsd:' in type_name:
             type_name = type_name.split('xsd:')[-1]
+
+        # if type is one of datetime picker types,
+        # assign corresponding html input and format
+        dt_format = self.DT_FORMAT.get(type_name, '')
+        if dt_format:
+            el.html_input = self.default_html_datetime_picker.format(
+                date_format=dt_format)
+        # end datepicker block
 
         if type_name == 'anySimpleType':
             return
