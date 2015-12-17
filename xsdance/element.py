@@ -194,8 +194,7 @@ class Element(object):
                                                gridster_settings=gridster_settings)
         if not self.parent:
             for k, v in self.initial_data.items():
-                content = re.sub('\[\[{0}\|checkbox\|.*?\]\]'.format(k), ('checked' if v else ''), content)
-                content = re.sub('\[\[{0}\|{1}\]\]'.format(k, v), 'selected="selected"', content)
+                content = re.sub('\[\[{0}\|checkbox\]\]'.format(k), ('checked' if v else ''), content)
                 content = re.sub('\[\[{0}\]\]'.format(k), v, content)
             content = re.sub(r'\[\[.*?\]\]', r'', content)
         return content
@@ -235,11 +234,7 @@ class Element(object):
                 name=name,
                 value=value,
                 checked=value,
-                selected=value,
             )
-            html_input = re.sub(r'<(.*?)(value="(.*?)")(.*?)\[\[(.*?)\]\](.*?)>',
-                                r'<\1\2\4\6 [[\5|\3]]>',
-                                html_input)
             result = self.html_input_wrapper.format(
                 label=html_label,
                 html_input=html_input,

@@ -63,7 +63,7 @@ class Generator(object):
     TOP_LEVEL_ELEMENT_NAME = 'schema'
 
     DT_FORMAT = {
-        'DateType': 'YYYY-MM-DD',
+        'DateType': 'YYYY-MM-DD HH MM',
         'YearMonthType': 'YYYY-MM',
         'TaxYearEndMonthDtType': 'YYMM',
         'MonthType': 'MM',
@@ -104,12 +104,12 @@ class Generator(object):
         <input type="checkbox" name="{{name}}" id="{{name}}" value="{value}" {{disabled}} {{checked}}/>
     '''
     default_html_select = '''
-        <select {multiple} name="{{name}}" {{disabled}}>
+        <select {multiple} name="{{name}}" {{disabled}} data-value="{{value}}">
             <option></option>
             {options}
         </select>
     '''
-    default_html_option = '<option value="{value}" {{selected}}>{text}</option>'
+    default_html_option = '<option value="{value}">{text}</option>'
     default_html_edit_checkbox = '''
         <input id="ch_hide_{name}" name="ch_hide_{name}" type="checkbox" {checked} class="hide unstyled-field hidden-block"/>
     '''  # NOQA
