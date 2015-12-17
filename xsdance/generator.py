@@ -70,6 +70,8 @@ class Generator(object):
         'MonthDayType': 'MM-DD',
         'QuarterEndDateType': 'YYYY-MM-DD',
         'YearType': 'YYYY',
+        'TimeType': 'HH:MM:SS',
+        'datetime': 'YYYY-MM-DD HH:MM:SS',
     }
 
     default_html_label = '''
