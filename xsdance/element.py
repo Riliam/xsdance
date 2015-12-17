@@ -194,9 +194,9 @@ class Element(object):
                                                gridster_settings=gridster_settings)
         if not self.parent:
             for k, v in self.initial_data.items():
-                content = content.replace('[[{0}|checkbox]]'.format(k), ('checked' if v else ''))
+                content = re.sub('\[\[{0}\|checkbox\|.*?\]\]'.format(k), ('checked' if v else ''), content)
                 content = re.sub('\[\[{0}\|{1}\]\]'.format(k, v), 'selected="selected"', content)
-                content = content.replace('[[{0}]]'.format(k), '{}'.format(v))
+                content = re.sub('\[\[{0}\]\]'.format(k), v, content)
             content = re.sub(r'\[\[.*?\]\]', r'', content)
         return content
 
@@ -428,7 +428,7 @@ class Element(object):
 
         cleaned, errors = self._validate_with_validators(source, cleaned, errors)
 
-        errors = self._validate_required_fields(cleaned, errors, hidden_fields_masks)
+        errors = self._validate_required_fields(cleaned, errors, hidden_fields_masks, checkbox_names)
         errors = self._validate_choices(cleaned, errors, hidden_fields)
         errors = self._validate_inlines(cleaned, errors, hidden_fields)
 
@@ -449,7 +449,7 @@ class Element(object):
         errors = filter(bool, errors)
         return errors
 
-    def _validate_required_fields(self, cleaned, errors, hidden_fields_masks):
+    def _validate_required_fields(self, cleaned, errors, hidden_fields_masks, checkbox_names):
         required_masks = self.get_required_masks(hidden_fields_masks)
         for k, v in cleaned.items():
             required = False
@@ -457,7 +457,7 @@ class Element(object):
                 if re.match(mask, k):
                     required = True
                     break
-            if required and not cleaned.get(k, None):
+            if required and (k not in checkbox_names) and (not cleaned.get(k, None)):
                 errors[k] = [self.error_messages['required']] + errors[k]
         return errors
 
