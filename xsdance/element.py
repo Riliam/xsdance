@@ -187,7 +187,8 @@ class Element(object):
                 gridster_settings=gridster_settings)
             content = self._wrap_with_inline_block_wrapper(
                 inline_content,
-                empty_item)
+                empty_item,
+                inlines_count)
 
         content = self._wrap_with_item_wrapper(content,
                                                edit_mode=edit_mode,
@@ -279,13 +280,13 @@ class Element(object):
         empty = self._wrap_with_html_inline_item_wrapper(empty, gridster_settings=gridster_settings)
         return empty
 
-    def _wrap_with_inline_block_wrapper(self, content, empty):
+    def _wrap_with_inline_block_wrapper(self, content, empty, inlines_count=None):
         wrapped = '''
             <div class="grid-stack fieldset-content">
                 {content}
                 {add_button}
             </div>
-        '''.format(content=content, add_button=self.get_add_button(empty))
+        '''.format(content=content, add_button=self.get_add_button(empty, inlines_count))
         return wrapped
 
     def _wrap_with_item_wrapper(self, content, edit_mode=False,
@@ -348,12 +349,12 @@ class Element(object):
                 min_count=self.min_occurs)
         return self.html_inline_buttons_wrapper.format(content=btn)
 
-    def get_add_button(self, empty):
+    def get_add_button(self, empty, max_count=None):
         btn = ''
         if self.inlines_needed() is not None:
             btn = self.html_inline_button_add.format(
                 name=self.name,
-                current_elements_count=self.inlines_needed(),
+                current_elements_count=max_count or self.inlines_needed(),
                 max_count=self.max_occurs,
                 empty=escape(empty, quote=True))
         return self.html_inline_buttons_wrapper.format(content=btn)
