@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals, print_function, division, absolute_import  # NOQA
 from pprint import pprint  # NOQA
+import json
 import copy
 from cgi import escape
 import re
@@ -194,6 +195,8 @@ class Element(object):
                                                gridster_settings=gridster_settings)
         if not self.parent:
             for k, v in self.initial_data.items():
+                if isinstance(v, list):
+                    v = escape(json.dumps(v), quote=True)
                 content = re.sub('\[\[{0}\|checkbox\]\]'.format(k), ('checked' if v else ''), content)
                 content = re.sub('\[\[{0}\]\]'.format(k), v, content)
             content = re.sub(r'\[\[.*?\]\]', r'', content)
@@ -439,8 +442,19 @@ class Element(object):
                 errors[k] = el.validate_atom(processed)
         return cleaned, errors
 
+    def process_value(self, value):
+        processed = value
+        for processor in self.processors:
+            processed = processor(processed)
+        return processed
+
     def validate_atom(self, processed):
-        errors = map(lambda v: v(processed), self.validators)
+        if isinstance(processed, list):
+            errors = []
+            for p in processed:
+                errors += map(lambda v: v(p), self.validators)
+        else:
+            errors = map(lambda v: v(processed), self.validators)
         errors = filter(bool, errors)
         return errors
 
@@ -556,12 +570,6 @@ class Element(object):
     @property
     def required(self):
         return self.min_occurs > 0
-
-    def process_value(self, value):
-        processed = value
-        for processor in self.processors:
-            processed = processor(processed)
-        return processed
 
     def add_subelement(self, el):
         self.subelements.append(el)
