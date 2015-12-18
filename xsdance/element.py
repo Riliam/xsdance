@@ -129,6 +129,24 @@ class Element(object):
 
         return result
 
+    def get_flat_fields(self, hidden_fields=None, acc_list=None):
+        hidden_fields = hidden_fields or []
+        acc_list = acc_list or ['{0}__'.format(self.name)]
+        names = []
+        for sub in self.subelements:
+            if sub.prefixed_name() not in hidden_fields:
+
+                if not sub.subelements:
+                    names += ['{0}{1}'.format(p, sub.name) for p in acc_list]
+                else:
+                    name = sub._get_name_with_inline_suffix() if sub.inlines_needed() is not None else sub.name
+                    new_acc = ['{0}{1}{2}'.format(p, name, '_' if 'choice' in sub.name else '__') for p in acc_list]
+                    if new_acc:
+                        names += sub.get_flat_fields(
+                            hidden_fields=hidden_fields,
+                            acc_list=new_acc)
+        return names
+
     def get_all_checkboxes(self, data, acc_list=None, hidden_fields=None):
         hidden_fields = hidden_fields or []
         acc_list = acc_list or ['{0}__'.format(self.name)]
