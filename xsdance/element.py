@@ -444,6 +444,8 @@ class Element(object):
         for chb in checkbox_names:
             source[chb] = source.get(chb, '')
 
+        source = self.normalize_indeces(source)
+
         cleaned, errors = self._validate_with_validators(source, cleaned, errors)
 
         errors = self._validate_required_fields(cleaned, errors, hidden_fields_masks, checkbox_names)
@@ -452,6 +454,95 @@ class Element(object):
 
         errors = {k: v for k, v in errors.items() if v}
         return cleaned, errors
+
+    @staticmethod
+    def normalize_indeces(input_data):
+        ''' Returns normalized inputs, where indeces, if not consecutive, are
+        mapped to 0 to n. Fields without indeces remain untouched.
+
+        Example input:
+            {
+                'a__b': 'value 1',
+                'a__babab': 'value 10',
+                'a__c_#{c:3}': 'value 2',
+                'a__d_#{d:4}__e': 'value 3',
+                'a__d_#{d:4}__f': 'value 4',
+                'a__d_#{d:8}__e': 'value 5',
+                'a__d_#{d:8}__f': 'value 6',
+                'a__g_#{g:5}__h__j_#{j:11}': 'value 7',
+                'a__g_#{g:5}__h__j_#{j:15}': 'value 8',
+                'a__g_#{g:7}__h__j_#{j:12}': 'value 9'
+            }
+
+        Example result:
+            {
+                'a__b': 'value 1',
+                'a__c_#{c:0}': 'value 2',
+                'a__d_#{d:0}__e': 'value 3',
+                'a__d_#{d:0}__f': 'value 4',
+                'a__d_#{d:1}__e': 'value 5',
+                'a__d_#{d:1}__f': 'value 6',
+                'a__g_#{g:0}__h__j_#{j:0}': 'value 7',
+                'a__g_#{g:0}__h__j_#{j:1}': 'value 8',
+                'a__g_#{g:1}__h__j_#{j:0}': 'value 9'
+            }
+        '''
+        sorted_input_data_items = sorted(input_data.items(), key=lambda x: x[0])
+        # `translate` is dict, with
+        #   key - tuple of `name`:`index` strings.
+        #         Last element of tuple is string, which will be replaced.
+        #         Elements from first to last but one needed to
+        #         ensure correct processing of nested indexed names
+        #   value - `name`:`index` string for which last element of key tuple
+        #         will be replaced
+        translate = {}
+
+        # `counts` is dict with value defaults to 0.
+        #   key - tuple, where
+        #     [:-1] elements are `name`:`index` string
+        #     [-1] element is `name` string
+        #   value - count of groups of `name` with different indeces
+        counts = defaultdict(lambda: 0)
+
+        # resulting data
+        new_data = {}
+
+        # in first part, `translate` and `counts` dictionaries are generated from inputs' keys
+        for k, _ in sorted_input_data_items:
+
+            # find all entries in key, which are look like `name`:`index`
+            # two re groups are fetched: (`name`:`index`, `name`)
+            ms = re.findall(r'#{((.*?):\d+)}', k)
+
+            new_translation_key, _ = tuple(zip(*ms))
+            there_are_indexed_names_in_the_key = bool(ms)
+            translation_not_yet_added = new_translation_key not in translate
+            if there_are_indexed_names_in_the_key and translation_not_yet_added:
+                # create new `counts_key`
+                last_name = ms[-1][1]
+                all_but_last_name_with_indexes = [a[0] for a in ms[:-1]]
+                counts_key = tuple(all_but_last_name_with_indexes + [last_name])
+
+                # update `translate` and `counts`
+                translate[new_translation_key] = '{}:{}'.format(last_name, counts[counts_key])
+                counts[counts_key] += 1
+
+        # in second part, `new_data` is generated, using defined `translate` and `counts`
+        for k, v in sorted_input_data_items:
+            new_k = k
+            for from_, to_ in translate.items():
+                # if all names are in new_k, ...
+                for name_with_index in from_:
+                    if name_with_index not in new_k:
+                        break
+                # ... replace last entry with `to_`
+                # NOTE! name_with_index remains after the loop with value of last index
+                # NOTE! else statement of for loop executes if loop exits normally(i.e. no break)
+                else:
+                    new_k = new_k.replace(name_with_index, to_)
+            new_data[new_k] = v
+
+        return new_data
 
     def _validate_with_validators(self, source, cleaned, errors):
         for k, v in source.items():
