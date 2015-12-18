@@ -112,7 +112,7 @@ class Element(object):
     @staticmethod
     def get_distinct_inlines_count(name, data, count=True,):
         if not data:
-            return None
+            return []
 
         rx = re.compile('#{' + name + ':(\d+)}')
 
@@ -142,19 +142,20 @@ class Element(object):
                 if sub.is_checkbox:
                     names += ['{0}{1}'.format(p, sub.name) for p in acc_list]
 
+                new_acc = []
                 if sub.subelements and sub.inlines_needed() is not None:
-                    names += sub.get_all_checkboxes(
-                        data,
-                        ['{0}{1}__'.format(p, sub._get_name_with_inline_suffix(index=i))
-                         for p in acc_list
-                         for i in self.get_distinct_inlines_count(sub.name, data.keys(), count=False)],
-                        hidden_fields=hidden_fields)
+                    new_acc = ['{0}{1}__'.format(p, sub._get_name_with_inline_suffix(index=i))
+                               for p in acc_list
+                               for i in self.get_distinct_inlines_count(sub.name, data.keys(), count=False)]
 
                 if sub.subelements and sub.inlines_needed() is None:
+                    new_acc = ['{0}{1}{2}'.format(p, sub.name, '_' if 'choice' in sub.name else '__')
+                               for p in acc_list]
+
+                if new_acc:
                     names += sub.get_all_checkboxes(
                         data,
-                        ['{0}{1}{2}'.format(p, sub.name, '_' if 'choice' in sub.name else '__')
-                         for p in acc_list],
+                        new_acc,
                         hidden_fields=hidden_fields)
         return names
 
