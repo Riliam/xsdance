@@ -315,10 +315,16 @@ class Element(object):
             self.get_gridster_settings_attrs(gridster_settings)
         edit_checkbox = self.get_edit_checkbox_input(edit_mode, hidden_fields)
 
+        error = ''
+        if self.subelements:
+            error = '<div class="error" id="{prefixed_name}"></div>'
+            error = error.format(prefixed_name=prefixed_name)
+
         result = self.html_wrapper.format(
             gridster_settings=gridster_settings_attrs,
             edit_checkbox=edit_checkbox,
             prefixed_name=prefixed_name,
+            error=error,
             name=self.name,
             content=content,
             inline_buttons='')
@@ -589,7 +595,9 @@ class Element(object):
 
             for group in groupby(sorted(inputs), key=lambda x: x.split(ch.name)[0]):
                 prefix, group_input_keys = group
-                if len([k for k in group_input_keys if cleaned.get(k)]) > ch.max_occurs:
+                count = len([k for k in group_input_keys if cleaned.get(k)])
+                count_of_elements_matches_bounds = (ch.min_occurs <= count and count <= ch.max_occurs)
+                if not count_of_elements_matches_bounds:
                     k = prefix + ch.name
                     elements_s = ', '.join(['\'{0}\''.format(e.label_text) for e in ch.subelements])
                     if ch.min_occurs == ch.max_occurs:

@@ -82,14 +82,13 @@ class Generator(object):
     '''
 
     default_html_input = '''
-        <input type="text" id="{name}" name="{name}" value="{value}" {disabled}/>
+        <input type="text" name="{name}" value="{value}" {disabled}/>
     '''
     default_html_datetime_picker = '''
         <div class="input-group date date-field">
 
              <input type="text"
                 class="form-control"
-                id="{{name}}"
                 name="{{name}}"
                 value="{{value}}"
                 {{disabled}}
@@ -101,7 +100,7 @@ class Generator(object):
         </div>
     '''
     default_html_checkbox = '''
-        <input type="checkbox" name="{{name}}" id="{{name}}" value="{value}" {{disabled}} {{checked}}/>
+        <input type="checkbox" name="{{name}}" value="{value}" {{disabled}} {{checked}}/>
     '''
     default_html_select = '''
         <select {multiple} name="{{name}}" {{disabled}} data-value="{{value}}">
@@ -124,7 +123,7 @@ class Generator(object):
               {edit_checkbox}
               {content}
               {inline_buttons}
-              <div class="error" id="{prefixed_name}"></div>
+              {error}
           </div>
         </div>
     '''
