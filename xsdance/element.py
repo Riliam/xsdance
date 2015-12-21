@@ -136,10 +136,10 @@ class Element(object):
         for sub in self.subelements:
             if sub.prefixed_name() not in hidden_fields:
 
+                name = sub._get_name_with_inline_suffix() if sub.inlines_needed() is not None else sub.name
                 if not sub.subelements:
-                    names += ['{0}{1}'.format(p, sub.name) for p in acc_list]
+                    names += ['{0}{1}'.format(p, name) for p in acc_list]
                 else:
-                    name = sub._get_name_with_inline_suffix() if sub.inlines_needed() is not None else sub.name
                     new_acc = ['{0}{1}{2}'.format(p, name, '_' if 'choice' in sub.name else '__') for p in acc_list]
                     if new_acc:
                         names += sub.get_flat_fields(
@@ -514,18 +514,19 @@ class Element(object):
             # two re groups are fetched: (`name`:`index`, `name`)
             ms = re.findall(r'#{((.*?):\d+)}', k)
 
-            new_translation_key, _ = tuple(zip(*ms))
-            there_are_indexed_names_in_the_key = bool(ms)
-            translation_not_yet_added = new_translation_key not in translate
-            if there_are_indexed_names_in_the_key and translation_not_yet_added:
-                # create new `counts_key`
-                last_name = ms[-1][1]
-                all_but_last_name_with_indexes = [a[0] for a in ms[:-1]]
-                counts_key = tuple(all_but_last_name_with_indexes + [last_name])
+            if ms:
+                new_translation_key, _ = tuple(zip(*ms))
+                there_are_indexed_names_in_the_key = bool(ms)
+                translation_not_yet_added = new_translation_key not in translate
+                if there_are_indexed_names_in_the_key and translation_not_yet_added:
+                    # create new `counts_key`
+                    last_name = ms[-1][1]
+                    all_but_last_name_with_indexes = [a[0] for a in ms[:-1]]
+                    counts_key = tuple(all_but_last_name_with_indexes + [last_name])
 
-                # update `translate` and `counts`
-                translate[new_translation_key] = '{}:{}'.format(last_name, counts[counts_key])
-                counts[counts_key] += 1
+                    # update `translate` and `counts`
+                    translate[new_translation_key] = '{}:{}'.format(last_name, counts[counts_key])
+                    counts[counts_key] += 1
 
         # in second part, `new_data` is generated, using defined `translate` and `counts`
         for k, v in sorted_input_data_items:
