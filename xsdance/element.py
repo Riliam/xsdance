@@ -246,7 +246,7 @@ class Element(object):
         if self.html_input:
             html_label = self.html_label.format(
                 name=name,
-                label_text=self.label_text or name,
+                label_text=self.label_text or self.name,
                 required=self.get_class_required(),
             )
             checkbox_ind = '|checkbox' if self.is_checkbox else ''
