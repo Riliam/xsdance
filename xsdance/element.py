@@ -215,10 +215,12 @@ class Element(object):
                                                gridster_settings=gridster_settings)
         if not self.parent:
             for k, v in self.initial_data.items():
-                if isinstance(v, list):
-                    v = escape(json.dumps(v), quote=True)
-                content = re.sub('\[\[{0}\|checkbox\]\]'.format(k), ('checked' if v else ''), content)
-                content = re.sub('\[\[{0}\]\]'.format(k), v, content)
+                not_list_v = json.dumps(v) if isinstance(v, list) else v
+                content = re.sub('\[\[{0}\|checkbox\]\]'.format(k), ('checked' if not_list_v else ''), content)
+                content = re.sub('\[\[{0}\|select\]\]'.format(k),
+                                 escape(json.dumps(v if isinstance(v, list) else [v]), quote=True),
+                                 content)
+                content = re.sub('\[\[{0}\]\]'.format(k), not_list_v, content)
             content = re.sub(r'\[\[.*?\]\]', r'', content)
         return content
 
@@ -250,7 +252,9 @@ class Element(object):
                 required=self.get_class_required(),
             )
             checkbox_ind = '|checkbox' if self.is_checkbox else ''
-            value = '[[{name}{ind}]]'.format(name=name, ind=checkbox_ind) if self.initial_data else ''
+            select_ind = '|select' if self.is_select else ''
+            ind = select_ind or checkbox_ind
+            value = '[[{name}{ind}]]'.format(name=name, ind=ind) if self.initial_data else ''
             html_input = self.html_input.format(
                 edit_checkbox=self.get_edit_checkbox_input(edit_mode, hidden_fields),
                 disabled=edit_mode and 'disabled' or '',
@@ -429,6 +433,10 @@ class Element(object):
     @property
     def is_checkbox(self):
         return 'type="checkbox"' in self.html_input
+
+    @property
+    def is_select(self):
+        return 'select' in self.html_input
 
     def render_xml(self):
         if not self.initial_data:
