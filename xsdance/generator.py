@@ -63,7 +63,7 @@ class Generator(object):
     TOP_LEVEL_ELEMENT_NAME = 'schema'
 
     DT_FORMAT = {
-        'DateType': 'YYYY-MM-DD HH MM',
+        'DateType': 'YYYY-MM-DD HH:MM',
         'YearMonthType': 'YYYY-MM',
         'TaxYearEndMonthDtType': 'YYMM',
         'MonthType': 'MM',
